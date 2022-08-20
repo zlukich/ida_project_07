@@ -1,0 +1,205 @@
+---
+title: "General Tasks"
+author: "Oleksandr Soboliev"
+output:
+  html_document:
+    df_print: paged
+  html_notebook:
+    theme: cosmo
+    highlight: monochrome
+    code_folding: show
+runtime: shiny
+editor_options:
+  chunk_output_type: inline
+---
+```{r echo = FALSE,include = FALSE,warning = FALSE}
+library(tidyverse)
+library(plotly)
+library(lubridate)
+```
+
+## **1 Aufgabe**
+Komponente K7
+```{r}
+komponente_k7 = read_delim("Logistikverzug/Komponente_K7.csv",delim = ";")
+print(komponente_k7)
+```
+
+Logistics delay
+```{r}
+logverzug_k7 = read_delim("Logistikverzug/Logistikverzug_K7.csv",delim = ",")
+print(logverzug_k7)
+
+```
+
+a.
+```{r 1.a}
+logistics_delay = inner_join(komponente_k7,logverzug_k7,by = "IDNummer")
+logistics_delay = logistics_delay %>% select(-Herstellernummer.x,-Werksnummer.x,-Fehlerhaft.y) %>%
+  rename(Herstellernummer = Herstellernummer.y,Werksnummer = Werksnummer.y,Fehlerhaft = Fehlerhaft.x)
+
+
+#Add weekdays for Produktions and Wareneingang
+logistics_delay = logistics_delay %>%
+  mutate(Produktionsday = wday(Produktionsdatum,week_start = 1),Wareneingangday = wday(Wareneingang,week_start = 1)) %>%
+  mutate(Delay = ifelse(Wareneingangday<Produktionsday,difftime(Wareneingang,Produktionsdatum)-1,#-2,
+                        difftime(Wareneingang,Produktionsdatum)-1)) %>%
+  mutate(Delay = ifelse((Delay/6)>=1,
+                        Delay,#-as.integer(Delay/6)*2,
+                        Delay))
+#ggplotly(ggplot(data = logistics_delay,aes(x = Delay))+
+#geom_histogram(aes(y = stat(density))))
+
+ggplotly(ggplot(logistics_delay, aes(x = Delay ))+
+  geom_histogram(aes(y = stat(density)),colour="black", fill="white", binwidth=1)+
+  scale_x_continuous(breaks = c(0:14))+
+  geom_density( fill="#FF6666",adjust = 10))
+
+
+```
+
+
+b.
+```{r 1.b}
+mean(logistics_delay$Delay)
+median(logistics_delay$Delay)
+#median
+#quartiles
+#min
+#max
+#skewness
+#kurtosis
+
+#4.119798
+```
+
+
+c.
+```{r 1.c}
+fig1 = plot_ly(logistics_delay,x = ~Delay,type = "histogram")
+fig2 = plot_ly(logistics_delay,x = ~Delay,type = "density")
+
+result = subplot(fig1,fig2)
+result
+```
+
+
+d.
+```{r 1.d}
+log_d = sample_n(logistics_delay,100000)
+plt = ggplot(data = log_d)+
+  geom_point(aes(x = Produktionsdatum,y = Herstellernummer,size = Fehlerhaft),position = position_dodge())
+
+ggplotly(plt)
+```
+
+
+## **Aufgabe 3**
+
+K2LE2, K2ST2 - these files contain components with parts from T16
+
+Fahrzeuge with these components are from 
+
+```{r Aufgabe 3, warning=FALSE}
+bestandteile_k2le2 = read_csv2("Komponente/Bestandteile_Komponente_K2LE2.csv")
+komponente_k2le2 = read_delim("Komponente/Komponente_K2LE2.txt","\\") %>%
+  select(X1,Herstellernummer) %>% rename(ID_Sitze = Herstellernummer)
+
+bestandteile_k2st2 = read_csv2("Komponente/Bestandteile_Komponente_K2ST2.csv")
+komponente_k2st2 = read_csv2("Komponente/Komponente_K2ST2.csv") %>%
+  select(X1,ID_Sitze)
+
+#Typ 11
+look_for_komponente = read_csv2("Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv")
+look_for_komponente %>% filter(grepl("K2LE2",ID_Schaltung) | grepl("K2LE2",ID_Sitze) | grepl("K2LE2",ID_Motor))
+look_for_komponente %>% filter(grepl("K2ST2",ID_Schaltung) | grepl("K2ST2",ID_Sitze) | grepl("K2ST2",ID_Motor))
+#0 Entries
+
+#Typ 12
+look_for_komponente = read_csv2("Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv")
+look_for_komponente %>% filter(grepl("K2LE2",ID_Schaltung) | grepl("K2LE2",ID_Sitze) | grepl("K2LE2",ID_Motor))
+look_for_komponente %>% filter(grepl("K2ST2",ID_Schaltung) | grepl("K2ST2",ID_Sitze) | grepl("K2ST2",ID_Motor))
+#0 Entries
+
+#Typ 21
+look_for_komponente = read_csv2("Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv")
+look_for_komponente %>% filter(grepl("K2LE2",ID_Schaltung) | grepl("K2LE2",ID_Sitze) | grepl("K2LE2",ID_Motor))
+look_for_komponente %>% filter(grepl("K2ST2",ID_Schaltung) | grepl("K2ST2",ID_Sitze) | grepl("K2ST2",ID_Motor))
+
+bestandteile_oem21 = look_for_komponente
+#many entries :)
+#Typ 22
+look_for_komponente = read_csv2("Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv")
+look_for_komponente %>% filter(grepl("K2LE2",ID_Schaltung) | grepl("K2LE2",ID_Sitze) | grepl("K2LE2",ID_Motor))
+look_for_komponente %>% filter(grepl("K2ST2",ID_Schaltung) | grepl("K2ST2",ID_Sitze) | grepl("K2ST2",ID_Motor))
+
+bestandteile_oem22 = look_for_komponente
+#many entries :)
+# so we need to join Bestandteile of Fahrzeuge to Fahrzeuge und zulassungen, to get number of parts from Adelshofen
+#Fahrzuege
+fahrzeuge_typ21 = read_delim("Fahrzeug/Fahrzeuge_OEM2_Typ21.csv",delim = ",")
+fahrzeuge_typ22 = read_delim("Fahrzeug/Fahrzeuge_OEM2_Typ22.csv")
+
+#Zulassungen
+zulassungen = read_csv2("Zulassungen/Zulassungen_alle_Fahrzeuge.csv")
+```
+
+```{r combine}
+# Combine all together
+
+#Parts(bestandteile) + components
+k2le2_with_parts = inner_join(komponente_k2le2,bestandteile_k2le2,by = c( "ID_Sitze" = "ID_K2LE2"))%>% 
+  select(X1,ID_Sitze,ID_T16)
+k2le2_with_parts$X1 = as.numeric(k2le2_with_parts$X1)
+#k2le2_with_parts$ID_Sitze = as.numeric(k2le2_with_parts$ID_Sitze)
+
+
+k2st2_with_parts = inner_join(komponente_k2st2,bestandteile_k2st2,by = c( "ID_Sitze" = "ID_K2ST2"))  %>%
+  select(X1,ID_Sitze,ID_T16)
+
+k2st2_with_k2le2 = rbind(k2st2_with_parts,k2le2_with_parts)
+
+
+# Fahrzeuge + components
+
+fahrzeuge_components_21 = inner_join(fahrzeuge_typ21,bestandteile_oem21,by = "ID_Fahrzeug") %>%
+  select(X1,ID_Sitze,ID_Fahrzeug)
+fahrzeuge_components_22 = inner_join(fahrzeuge_typ22,bestandteile_oem22,by = "ID_Fahrzeug")%>%
+  select(X1.x,ID_Sitze,ID_Fahrzeug) %>% rename(X1 = X1.x)
+
+fahrzeuge_components_all = rbind(fahrzeuge_components_21,fahrzeuge_components_22)
+
+
+# Fahrzeuge+components+parts
+fcp = inner_join(fahrzeuge_components_all,k2st2_with_k2le2,by = "ID_Sitze")
+
+#Zulassungen aus Adelshofen with cars
+
+zulassungen_adelshofen = zulassungen %>% filter(Gemeinden == "ADELSHOFEN")
+fahrzeuge_zulassungen_adelshofen = inner_join(fcp,zulassungen_adelshofen,by = c("ID_Fahrzeug"="IDNummer"))
+nrow(fahrzeuge_zulassungen_adelshofen)
+```
+##**Aufgabe 6**
+```{r Aufgabe6}
+bestand11 = read_csv2("Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv") %>% rename(X1 = ...1)
+bestand12 = read_csv2("Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv")%>% rename(X1 = ...1)
+bestand21 = read_csv2("Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv")%>% rename(X1 = ...1)
+bestand22 = read_csv2("Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv")
+
+all_bestand = rbind(bestand11,bestand12,bestand21,bestand22)
+```
+
+```{r }
+fahrzeuge11 = read_delim("Fahrzeug/Fahrzeuge_OEM1_Typ11.csv",delim = ",") %>% select(X1,ID_Fahrzeug)
+fahrzeuge12 = read_csv2("Fahrzeug/Fahrzeuge_OEM1_Typ12.csv")%>% select(X1,ID_Fahrzeug)
+fahrzeuge21 = read_delim("Fahrzeug/Fahrzeuge_OEM2_Typ21.csv",delim = ",")%>% select(X1,ID_Fahrzeug)
+fahrzeuge22 = read_csv2("Fahrzeug/Fahrzeuge_OEM2_Typ22.csv")%>% select(X1,ID_Fahrzeug)
+
+all_fahrzeuge = rbind(fahrzeuge11,fahrzeuge12,fahrzeuge21,fahrzeuge22)
+
+all_bestand_fahrzeuge = inner_join(all_bestand,all_fahrzeuge,by = "ID_Fahrzeug")
+
+all_bestand_fahrzeuge_zulassungen = inner_join(all_bestand_fahrzeuge,zulassungen,by = c("ID_Fahrzeug"="IDNummer"))
+
+all_bestand_fahrzeuge_zulassungen %>% filter(ID_Karosserie == "K5-112-1122-79")
+```
