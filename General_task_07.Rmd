@@ -1,0 +1,230 @@
+---
+title: "General_Task_07"
+author: "Group07"
+date: '2022-08-14'
+output: html_document
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1 Packages Installation
+
+ 
+
+```{r  libraries, echo = FALSE, message = FALSE,warning = FALSE}
+#Sichern, dass StringsAsFactors gleich FALSE
+options(stringsAsFactors = F)
+
+# Überprüfen, ob die Packages bereits installiert sin
+if(!require(readr)){
+  # wenn es nicht installiert ist, wird es nun installiert
+  install.packages("readr", dependencies = TRUE)
+  library(readr)
+}
+
+
+if(!require(tidyverse)){
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+
+if(!require(moments)){
+  install.packages("moments")
+  library("moments")
+}
+if(!require("plotly")){
+  install.packages("plotly")
+  library(plotly)
+}
+
+if (!require("data.table")) {
+  install.packages("data.table")
+  library(data.table)
+}
+```
+
+# 2 Data Import
+
+
+```{r import,  echo=TRUE, message = FALSE, warning = FALSE}
+#for semicolon delimited
+K7 <- read_csv2("Data/Logistikverzug/Komponente_K7.csv")[2:6]
+K7$Fehlerhaft <- as.logical(K7$Fehlerhaft)
+K7$Produktionsdatum <- as.Date(K7$Produktionsdatum,
+                                          format = "%Y-%m-%d")  
+# for comma delimited
+LK7 <- read_csv("Data/Logistikverzug/Logistikverzug_K7.csv")[2:6]
+LK7$Fehlerhaft <- as.logical(LK7$Fehlerhaft)
+LK7$Wareneingang <- as.Date(LK7$Wareneingang,
+                                          format="%Y-%m-%d")
+str(K7)
+str(LK7)
+```
+
+
+```{r join ,echo=TRUE, message = FALSE,warning = FALSE}
+
+Result<- K7$Fehlerhaft == LK7$Fehlerhaft
+Result_filter<- Result[FALSE]
+#the column Fehlerhaft is equal in both datasets
+Kom_K7_LK7 <- K7 %>% full_join(LK7, by = c("IDNummer","Herstellernummer", "Werksnummer","Fehlerhaft"))%>%
+#creates a new column Wochentag   
+mutate(Wochentag = weekdays(Produktionsdatum))
+#filter NA values
+Kom_K7_LK7_NA <-Kom_K7_LK7 %>% filter(!is.na(Produktionsdatum))%>%filter(!is.na(Wareneingang)) %>% 
+  mutate(Warenausgang = ifelse(Wochentag == "Freitag",Produktionsdatum +3,ifelse(Wochentag =="Samstag",Produktionsdatum +2,Produktionsdatum +1)))
+Kom_K7_LK7_NA$Warenausgang <- as.Date(Kom_K7_LK7_NA$Warenausgang,origin = "1970-01-01",
+                                          format="%Y-%m-%d")
+Kom_K7_LK7_NA <- Kom_K7_LK7_NA %>% mutate(Verzug = Wareneingang - Warenausgang)
+
+```
+# 3 General Task 
+
+## 3.1 Logistics 
+### a Logistic distribution
+ 
+```{r logistic distribution, warning= FALSE}
+Kom_K7_LK7_NA$Verzug <- as.integer(Kom_K7_LK7_NA$Verzug)
+summary(Kom_K7_LK7_NA$Verzug)
+#skew(Kom_K7_LK7_NA$Verzug)
+mean <- mean(Kom_K7_LK7_NA$Verzug)
+median <- median(Kom_K7_LK7_NA$Verzug)
+stdev <- sd(Kom_K7_LK7_NA$Verzug)
+skewness <-3*(mean-median)/stdev #Pearson’s Coefficient of Skewness using the median
+kurtosis<-kurtosis(Kom_K7_LK7_NA$Verzug)
+cat("skewness: ",skewness)
+cat("kurtosis: ",kurtosis)
+#https://www.vrcbuzz.com/karl-pearsons-coefficient-of-skewness-using-r-with-examples/
+```
+
+The Skewness value is to analyze the symmetrie or the lack of symmetrie  of the distribution. In this case it is  possible to observe that this is negative. The value is -0,84. This means that the tail is on the left side of the distribution. The kurtosis value is greather than 3, it is said to be leptokurtic.This means that there are more chances to be outliers and that the distribution is peakead and haslong tails (thick)
+
+### b Logistics delay mean
+```{r mean , echo=TRUE, message=FALSE,warning = FALSE}
+mean <- as.numeric(mean(Kom_K7_LK7_NA$Verzug)) 
+
+# Ausgeben der Ergebnisse
+cat("Mittelwert:", mean)
+```
+## Visualization
+```{r visualization,warning = FALSE}
+binwith <-(14-1)/14
+logistic_delay <-ggplot(Kom_K7_LK7_NA, aes(x = Verzug ))+
+  geom_histogram(aes(y = stat(density)),colour="black", fill="white", binwidth=1)+
+  scale_x_continuous(breaks = c(0:14))+
+  geom_density( fill="#FF6666",adjust = 10) 
+
+
+ggplotly(logistic_delay)
+#plot(logistic_delay)
+```
+## 3.2 Data base structure 
+## 3.3 Components 
+```{r reading zulassung,warning = FALSE}
+#reading txt file 
+T16 <-file("Data/Einzelteil/Einzelteil_T16.txt",open = "r")
+lines <- readLines(T16 )%>%str_replace_all(., "\t", "\n")%>%str_replace_all(., " \\| \\| ", "\t")
+file <-fread(text =lines)
+#reading zulassung file
+zulassung <- read_csv2("Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv")
+
+```
+
+
+```{r filtering zulassung,warning = FALSE}
+#filtering Zulassung 
+zulassung_adel=zulassung%>%filter(Gemeinden =="ADELSHOFEN")
+#
+
+```
+
+```{r reading Teil-Komponente,warning = FALSE }
+#reading T16 Teil Komponente
+
+#for semicolon delimited
+T16_Kom_1 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K2LE2.csv")%>%select("ID_T16","ID_K2LE2")
+names(T16_Kom_1)[2]<-"ID_Sitze"
+T16_Kom_2 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K2ST2.csv")%>%select("ID_T16","ID_K2ST2")
+names(T16_Kom_2)[2]<-"ID_Sitze"
+```
+```{r reading Komponente,warning = FALSE}
+#reading Komponente & Combine them 
+#Kom_K2LE2 <-file("Data/Komponente/Komponente_K2LE2.txt",open = "r")
+#K2LE2_L <- readLines(T16 )%>%str_replace_all(., " \ ", "\t")
+#K2LE2 <-fread(text =lines)
+
+Kom_K2LE2<- read.delim("Data/Komponente/Komponente_K2LE2.txt",sep = "\\")%>%select(c("ID_Sitze","Werksnummer")) # not need to read it doesnt give any extra info
+Kom_K2ST2<-read_csv2("Data/Komponente/Komponente_K2ST2.csv")%>%select(c("ID_Sitze","Werksnummer"))
+T16_K2LE2<-T16_Kom_1%>%left_join(Kom_K2LE2,by="ID_Sitze")#c("ID_Kom"="ID_Sitze")
+T16_K2ST2<-T16_Kom_2%>%left_join(Kom_K2ST2,by="ID_Sitze")
+T16_Kom_bind<-rbind(T16_K2LE2,T16_K2ST2)
+```
+```{r Bestandteil Fahrzeug  ,warning = FALSE}
+#read Bestandteil Fahrzeuge and combine them
+Kom_Fahr_1<-read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv")%>%select(c("ID_Sitze","ID_Fahrzeug"))
+Kom_Fahr_2<-read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv")%>%select(c("ID_Sitze","ID_Fahrzeug"))
+Kom_Fahr_bind<-rbind(Kom_Fahr_1,Kom_Fahr_2)
+```
+```{r creating dataset,warning = FALSE}
+#join the different datasets to create a dataset that only contains the IDs of the components that where produced in ADELSHOFEN
+Kom_Fahr <- T16_Kom_bind %>%left_join(Kom_Fahr_bind, by ="ID_Sitze")
+Kom_Fahr_Adel <-Kom_Fahr%>%inner_join(zulassung_adel,by =c("ID_Fahrzeug"="IDNummer"))
+
+
+```
+Number of Cars register in ADELSHOFEN:
+```{r}
+nrow(Kom_Fahr_Adel)
+```
+## 3.4 Data Type attributes 
+The Data type of the table "Zulassung" is shown with the str() function
+```{r zulassung data type,warning = FALSE}
+str(zulassung)
+```
+## 3.5 Server 
+To Save the records on the database of a server has the advantage that no local memory is occupied but more important, a permanent access to the most recently data records can be in most cases guaranteed, with a few exception as for example when maintenance takes place. 
+
+Since databases tend to store a large amount of data, this could cause the computer to slow down. Also the quality of the data deteriorate very fast, since the data doesnt get updated. 
+
+"RStudio Shiny Server Open Source" allows customers to get access to the app from anywhere with any web browser
+
+## 3.6 car registration
+```{r registration,warning = FALSE}
+car<-read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv")%>%select(c("ID_Karosserie","ID_Fahrzeug"))%>%filter(ID_Karosserie == "K5-112-1122-79")
+car_registerd<-filter(zulassung, IDNummer == car$ID_Fahrzeug)
+gemeinden <- as.character(car_registerd$Gemeinden)
+cat("Car with ID Karosserie'K5-112-1122-79' got registered in ",
+    gemeinden) 
+```
+
+
+```{r,include=FALSE}
+#join Bestandteile Komp CSV
+#T16_Kom <-T16_Kom_1 %>% full_join(T16_Kom_2, by= c("ID_T16","ID_Kom"))
+#T16_Kom_bind<-rbind(T16_Kom_1,T16_Kom_2)
+```
+
+
+```{r,include=FALSE}
+#typeof(line)
+#l<-as.data.frame(line)
+```
+
+```{r rest , warning=FALSE,echo=FALSE,include=FALSE}
+#T6R<-read_file("Data/Einzelteil/Einzelteil_T16.txt")%>%str_replace_all(., "|", "\t")#%>% 
+#file <-fread(text =lines)
+#logistics_delay = logistics_delay %>%
+ # mutate(Produktionsday = wday(Produktionsdatum,week_start = 1),Wareneingangday = wday(Wareneingang,week_start = 1)) %>%
+  #mutate(Delay = ifelse(Wareneingangday<Produktionsday,difftime(Wareneingang,Produktionsdatum)-1-2,
+   #                     difftime(Wareneingang,Produktionsdatum)-1)) %>%
+  #mutate(Delay = ifelse((Delay/6)>=1,
+   #                     Delay-as.integer(Delay/6)*2,
+    #                    Delay))
+#T16_adel <-file %>% left_join(zulassung_adel,by = c("ID_T16.x" = "IDNummer"))
+#nrow(filter(T16_adel, Gemeinden == "ADELSHOFEN"))
+```
+
+
