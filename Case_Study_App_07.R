@@ -24,7 +24,12 @@ if(!require("shiny")){
   library(shiny)
 }
 
-final_dataset <- read_delim("Data/Final_dataset_group_07.csv",delim = ",")
+if(!require("modelr")){
+  install.packages("modelr")
+  library(modelr)
+}
+
+final_dataset <- read_delim("Additional files/Final_dataset_group_07.csv",delim = ",")
 
 ui <- fluidPage(
   #Styling with css
@@ -51,8 +56,9 @@ ui <- fluidPage(
       
       tabsetPanel(type = "tabs",
                   tabPanel("Summary", verbatimTextOutput("summary")),
-                  tabPanel("View", tableOutput("view"))
-      )
+                  tabPanel("View", tableOutput("view")),
+                  tabPanel("Plot", plotOutput("plot")
+      ))
       # Output: Verbatim text for data summary ----
       
       
@@ -82,6 +88,17 @@ server <- function(input,output){
   output$view <- renderTable({
     head(final_dataset, n = input$obs)
   })
+  
+  output$plot <- renderPlot({
+    final_dataset_year = final_dataset %>% mutate(date_year =(year(Zulassung))) %>%
+      rename(anzahl = 'Number of Vehicle') %>%
+      group_by(date_year,Herstellernummer,Gemeinden) %>% 
+      summarize(n = sum(anzahl))
+    ggplot(final_dataset_year)+
+      geom_line(aes(x = date_year,y = n, colour = Gemeinden))+
+      facet_wrap(~Herstellernummer)
+    
+    })
 }
 
 shinyApp(ui = ui, server = server)

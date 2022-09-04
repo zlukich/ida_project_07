@@ -1,9 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Yusei+Magic&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap');
 
 body { background-color: white;
-        color: lightblue;}
+        color: lightblue;
+        font-family: 'Source Sans Pro',sans-serif;
+}
 div { background-color: white;
         color: lightblue;}
  h2 {
-        font-family: 'Yusei Magic', sans-serif;
+        font-family: 'Source Sans Pro',sans-serif;
         }
