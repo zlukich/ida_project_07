@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Yusei+Magic&display=swap');
+
+body { background-color: white;
+        color: lightblue;}
+div { background-color: white;
+        color: lightblue;}
+ h2 {
+        font-family: 'Yusei Magic', sans-serif;
+        }
