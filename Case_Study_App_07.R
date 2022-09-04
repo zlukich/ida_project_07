@@ -27,6 +27,10 @@ if(!require("shiny")){
 final_dataset <- read_delim("Data/Final_dataset_group_07.csv",delim = ",")
 
 ui <- fluidPage(
+  #Styling with css
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
+  ),
   # App title ----
   titlePanel("IDA Case Study. Group# 07"),
   img(src = "qw_gross.png",width = 125, height = 125),
