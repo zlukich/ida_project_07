@@ -42,6 +42,8 @@ ui <- fluidPage(
   # Sidebar layout with a input and output definitions ----
   sidebarLayout(
     
+    
+    
     # Sidebar panel for inputs ----
     sidebarPanel(
       
@@ -58,7 +60,8 @@ ui <- fluidPage(
                   tabPanel("Summary", verbatimTextOutput("summary")),
                   tabPanel("View", tableOutput("view")),
                   tabPanel("Plot", plotOutput("plot")
-      ))
+      )
+      )
       # Output: Verbatim text for data summary ----
       
       
