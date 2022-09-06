@@ -187,45 +187,88 @@ unique(substr(zulassungen_componentList$ID_Motor, 1,5))
 ```
 Based on this result, all components are required to be imported. The next step is to determine, which single part datasets are required.
 
+### Creating a list of all relevant components
+```{r message = FALSE, warning = FALSE}
+karosserie <- select(zulassungen_componentList, ID_Karosserie)
+schaltung <- select(zulassungen_componentList, ID_Schaltung)
+sitze <- select(zulassungen_componentList, ID_Sitze)
+motor <- select(zulassungen_componentList, ID_Motor)
+
+componentList <- rbind(karosserie, schaltung, sitze, motor, use.names = FALSE) %>% rename("ID_K" = 1)
+rm(karosserie, schaltung, sitze, motor)
+```
+
+
 ### Importing single part list datasets
 Function `fread()` with header-value set to `TRUE` is used for importing the all single part list datasets (Bestandteile Komponente). The first column is removed to simplify the dataset.
 ```{r message = FALSE, warning = FALSE}
-# Component List of each components
+# Component List of Motor
 bestandteile_komponente_k1be1 <- fread("Data/Komponente/Bestandteile_Komponente_K1BE1.csv", header = TRUE) %>% 
-  select(-1)
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K1BE1" = "ID_K"))
+
 bestandteile_komponente_k1be2 <- fread("Data/Komponente/Bestandteile_Komponente_K1BE2.csv", header = TRUE) %>% 
-  select(-1)
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K1BE2" = "ID_K"))
+
 bestandteile_komponente_k1di1 <- fread("Data/Komponente/Bestandteile_Komponente_K1DI1.csv", header = TRUE) %>% 
-  select(-1)
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K1DI1" = "ID_K"))
+
 bestandteile_komponente_k1di2 <- fread("Data/Komponente/Bestandteile_Komponente_K1DI2.csv", header = TRUE) %>% 
-  select(-1)
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K1DI2" = "ID_K"))
 
+# Component List of Seat
 bestandteile_komponente_k2le1 <- fread("Data/Komponente/Bestandteile_Komponente_K2LE1.csv", header = TRUE) %>% 
-  select(-1)
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K2LE1" = "ID_K"))
+
 bestandteile_komponente_k2le2 <- fread("Data/Komponente/Bestandteile_Komponente_K2LE2.csv", header = TRUE) %>% 
-  select(-1)
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K2LE2" = "ID_K"))
+
 bestandteile_komponente_k2st1 <- fread("Data/Komponente/Bestandteile_Komponente_K2ST1.csv", header = TRUE) %>% 
-  select(-c(1,2))
+  select(-c(1,2)) %>% 
+  semi_join(componentList, by = c("ID_K2ST1" = "ID_K"))
+
 bestandteile_komponente_k2st2 <- fread("Data/Komponente/Bestandteile_Komponente_K2ST2.csv", header = TRUE) %>% 
-  select(-1)
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K2ST2" = "ID_K"))
 
+# Component List of Transmission
 bestandteile_komponente_k3ag1 <- fread("Data/Komponente/Bestandteile_Komponente_K3AG1.csv", header = TRUE) %>% 
-  select(-1)
-bestandteile_komponente_k3ag2 <- fread("Data/Komponente/Bestandteile_Komponente_K3AG2.csv", header = TRUE) %>% 
-  select(-1)
-bestandteile_komponente_k3sg1 <- fread("Data/Komponente/Bestandteile_Komponente_K3SG1.csv", header = TRUE) %>% 
-  select(-1)
-bestandteile_komponente_k3sg2 <- fread("Data/Komponente/Bestandteile_Komponente_K3SG2.csv", header = TRUE) %>% 
-  select(-1)
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K3AG1" = "ID_K"))
 
+bestandteile_komponente_k3ag2 <- fread("Data/Komponente/Bestandteile_Komponente_K3AG2.csv", header = TRUE) %>% 
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K3AG2" = "ID_K"))
+
+bestandteile_komponente_k3sg1 <- fread("Data/Komponente/Bestandteile_Komponente_K3SG1.csv", header = TRUE) %>% 
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K3SG1" = "ID_K"))
+
+bestandteile_komponente_k3sg2 <- fread("Data/Komponente/Bestandteile_Komponente_K3SG2.csv", header = TRUE) %>% 
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K3SG2" = "ID_K"))
+
+# Component List of Karosserie
 bestandteile_komponente_k4 <- fread("Data/Komponente/Bestandteile_Komponente_K4.csv", header = TRUE) %>% 
-  select(-1)
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K4" = "ID_K"))
+
 bestandteile_komponente_k5 <- fread("Data/Komponente/Bestandteile_Komponente_K5.csv", header = TRUE) %>% 
-  select(-1)
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K5" = "ID_K"))
+
 bestandteile_komponente_k6 <- fread("Data/Komponente/Bestandteile_Komponente_K6.csv", header = TRUE) %>% 
-  select(-1)
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K6" = "ID_K"))
+
 bestandteile_komponente_k7 <- fread("Data/Komponente/Bestandteile_Komponente_K7.csv", header = TRUE) %>% 
-  select(-1)
+  select(-1) %>% 
+  semi_join(componentList, by = c("ID_K7" = "ID_K"))
 
 ```
 
@@ -270,7 +313,8 @@ rm(bestandteile_komponente_k1be1, bestandteile_komponente_k1be2,
    bestandteile_komponente_k3ag1, bestandteile_komponente_k3ag2,
    bestandteile_komponente_k3sg1, bestandteile_komponente_k3sg2,
    bestandteile_komponente_k4, bestandteile_komponente_k5, 
-   bestandteile_komponente_k6, bestandteile_komponente_k7)
+   bestandteile_komponente_k6, bestandteile_komponente_k7 
+   )
 ```
 
 ### Joining filtered registration with whole single part list dataset
@@ -315,25 +359,59 @@ c(unique(substr(zulassungen_partList$ID_Karosserie_T_1, 1,2)), unique(substr(zul
 ```
 Based on the result above, all single part datasets are required for this study case.
 
+
+### Creating a list of all relevant parts
+```{r message = FALSE, warning = FALSE}
+t01 <- select(zulassungen_partList, 10)
+t02 <- select(zulassungen_partList, 11)
+t03 <- select(zulassungen_partList, 12)
+t04 <- select(zulassungen_partList, 13)
+t05 <- select(zulassungen_partList, 14)
+t06 <- select(zulassungen_partList, 15)
+t07 <- select(zulassungen_partList, 16)
+t08 <- select(zulassungen_partList, 17)
+t09 <- select(zulassungen_partList, 18)
+t10 <- select(zulassungen_partList, 19)
+t11 <- select(zulassungen_partList, 20)
+t12 <- select(zulassungen_partList, 21)
+t13 <- select(zulassungen_partList, 22)
+t14 <- select(zulassungen_partList, 23)
+t15 <- select(zulassungen_partList, 24)
+
+partList <- rbind(t01, t02, t03, t04, t05, 
+                  t06, t07, t08, t09, t10, 
+                  t11, t12, t13, t14, t15, 
+                  use.names = FALSE) %>% rename("ID_T" = 1) %>% filter(!is.na(ID_T))
+
+rm(t01, t02, t03, t04, t05, 
+   t06, t07, t08, t09, t10,
+   t11, t12, t13, t14, t15)
+```
+
+
 ### Importing all component
 During the importing of all component datasets, only the `ID` and `Fehlerhaft` column are relevant. The datasets are imported as follow.
 
 #### Importing component K1xx (Motor)
 Components are imported by using `fread` function of `data.table` package. For component K1BE1 and K1BE2, column 3 and 6 are selected. Since the dataset of component K1DI1 is structured with columns, that are repeated three times, column 3, 7, 10, 14, 17, and 21 are selected. By applying the function `merge_xyz()`, these columns could be merged into two relevant columns. To import component K1DI2, the original data needs to be read and some strings must be modified, so that the data could be imported as columns.
 ```{r message = FALSE, warning = FALSE}
-komponente_k1be1 <- fread("Data/Komponente/Komponente_K1BE1.csv") %>% select(3,6)
+komponente_k1be1 <- fread("Data/Komponente/Komponente_K1BE1.csv") %>% select(3,6) %>% 
+  semi_join(componentList, by = c("ID_Motor" = "ID_K"))
 
-komponente_k1be2 <- fread("Data/Komponente/Komponente_K1BE2.csv") %>% select(3,6)
+komponente_k1be2 <- fread("Data/Komponente/Komponente_K1BE2.csv") %>% select(3,6) %>% 
+  semi_join(componentList, by = c("ID_Motor" = "ID_K"))
 
 komponente_k1di1 <- fread("Data/Komponente/Komponente_K1DI1.csv") %>% 
   select(3, 7, 10, 14, 17, 21) %>% 
   merge_xyz() %>% 
-  rename(ID_Motor = V1, Fehlerhaft = V2)
+  rename(ID_Motor = V1, Fehlerhaft = V2) %>% 
+  semi_join(componentList, by = c("ID_Motor" = "ID_K"))
 
 komponente_k1di2 <- read_file("Data/Komponente/Komponente_K1DI2.txt") %>% 
   str_replace_all("\t", "\n") %>% 
   fread(sep = "\\") %>% 
-  select(3,6)
+  select(3,6) %>% 
+  semi_join(componentList, by = c("ID_Motor" = "ID_K"))
 ```
 
 #### Importing component K2xx (Sitze/Seat)
@@ -345,13 +423,17 @@ komponente_k2le1 <- read_file("Data/Komponente/Komponente_K2LE1.txt") %>%
   fread() %>% 
   select(3, 7, 10, 14) %>% 
   merge_xy() %>% 
-  rename(ID_Sitze = V1, Fehlerhaft = V2)
+  rename(ID_Sitze = V1, Fehlerhaft = V2) %>% 
+  semi_join(componentList, by = c("ID_Sitze" = "ID_K"))
 
-komponente_k2le2 <- fread("Data/Komponente/Komponente_K2LE2.txt", sep = "\\") %>% select(3,6)
+komponente_k2le2 <- fread("Data/Komponente/Komponente_K2LE2.txt", sep = "\\") %>% select(3,6) %>% 
+  semi_join(componentList, by = c("ID_Sitze" = "ID_K"))
 
-komponente_k2st1 <- fread("Data/Komponente/Komponente_K2ST1.txt") %>% select(3,7)
+komponente_k2st1 <- fread("Data/Komponente/Komponente_K2ST1.txt") %>% select(3,7) %>% 
+  semi_join(componentList, by = c("ID_Sitze" = "ID_K"))
 
-komponente_k2st2 <- fread("Data/Komponente/Komponente_K2ST2.csv") %>% select(3,6)
+komponente_k2st2 <- fread("Data/Komponente/Komponente_K2ST2.csv") %>% select(3,6) %>% 
+  semi_join(componentList, by = c("ID_Sitze" = "ID_K"))
 ```
 
 #### Importing component K3xx (Schaltung/Transmission)
@@ -359,16 +441,20 @@ komponente_k2st2 <- fread("Data/Komponente/Komponente_K2ST2.csv") %>% select(3,6
 komponente_k3ag1 <- fread("Data/Komponente/Komponente_K3AG1.csv") %>% 
   select(3, 7, 10, 14, 17, 21) %>% 
   merge_xyz() %>% 
-  rename(ID_Schaltung = V1, Fehlerhaft = V2)
+  rename(ID_Schaltung = V1, Fehlerhaft = V2) %>% 
+  semi_join(componentList, by = c("ID_Schaltung" = "ID_K"))
 
-komponente_k3ag2 <- fread("Data/Komponente/Komponente_K3AG2.txt", sep = "\\") %>% select(3,6)
+komponente_k3ag2 <- fread("Data/Komponente/Komponente_K3AG2.txt", sep = "\\") %>% select(3,6) %>% 
+  semi_join(componentList, by = c("ID_Schaltung" = "ID_K"))
 
 komponente_k3sg1 <- fread("Data/Komponente/Komponente_K3SG1.csv") %>% 
   select(3, 7, 10, 14) %>% 
   merge_xy() %>% 
-  rename(ID_Schaltung = V1, Fehlerhaft = V2)
+  rename(ID_Schaltung = V1, Fehlerhaft = V2) %>% 
+  semi_join(componentList, by = c("ID_Schaltung" = "ID_K"))
 
-komponente_k3sg2 <- fread("Data/Komponente/Komponente_K3SG2.csv") %>% select(3,6)
+komponente_k3sg2 <- fread("Data/Komponente/Komponente_K3SG2.csv") %>% select(3,6) %>% 
+  semi_join(componentList, by = c("ID_Schaltung" = "ID_K"))
 ```
 
 #### Importing component K4 - K7 (Karosserie)
@@ -377,15 +463,20 @@ komponente_k3sg2 <- fread("Data/Komponente/Komponente_K3SG2.csv") %>% select(3,6
 komponente_k4 <- fread("Data/Komponente/Komponente_K4.csv") %>% 
   select(3, 7, 10, 14) %>% 
   merge_xy() %>% 
-  rename(ID_Karosserie = V1, Fehlerhaft = V2)
+  rename(ID_Karosserie = V1, Fehlerhaft = V2) %>% 
+  semi_join(componentList, by = c("ID_Karosserie" = "ID_K"))
 
 komponente_k5 <- fread("Data/Komponente/Komponente_K5.csv") %>% 
   select(3, 7, 10, 14) %>% 
   merge_xy() %>% 
-  rename(ID_Karosserie = V1, Fehlerhaft = V2)
+  rename(ID_Karosserie = V1, Fehlerhaft = V2) %>% 
+  semi_join(componentList, by = c("ID_Karosserie" = "ID_K"))
 
-komponente_k6 <- fread("Data/Komponente/Komponente_K6.csv") %>% select(3,6)
-komponente_k7 <- fread("Data/Komponente/Komponente_K7.txt") %>% select(3,6)
+komponente_k6 <- fread("Data/Komponente/Komponente_K6.csv") %>% select(3,6) %>% 
+  semi_join(componentList, by = c("ID_Karosserie" = "ID_K"))
+
+komponente_k7 <- fread("Data/Komponente/Komponente_K7.txt") %>% select(3,6) %>% 
+  semi_join(componentList, by = c("ID_Karosserie" = "ID_K"))
 ```
 
 ### Importing all single components
@@ -398,7 +489,8 @@ einzelteil_t01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>%
   fread() %>% 
   select(3, 7, 10, 14, 17, 21) %>% 
   merge_xyz() %>% 
-  rename(ID_T01 = V1, Fehlerhaft = V2)
+  rename(ID_T01 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T01" = "ID_T"))
 
 einzelteil_t02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>% 
   str_replace_all("\t", "\n") %>%
@@ -406,58 +498,72 @@ einzelteil_t02 <- read_file("Data/Einzelteil/Einzelteil_T02.txt") %>%
   fread() %>% 
   select(3, 7, 10, 14) %>% 
   merge_xy() %>% 
-  rename(ID_T02 = V1, Fehlerhaft = V2)
+  rename(ID_T02 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T02" = "ID_T"))
 
 einzelteil_t03 <- read_file("Data/Einzelteil/Einzelteil_T03.txt") %>% 
   str_replace_all("[:cntrl:]", "\n") %>%
   str_replace_all("\\|", ";") %>%
   fread() %>% 
-  select(3,6)
+  select(3,6) %>% 
+  semi_join(partList, by = c("ID_T03" = "ID_T"))
 
-einzelteil_t04 <- fread("Data/Einzelteil/Einzelteil_T04.csv") %>% select(3,6)
+einzelteil_t04 <- fread("Data/Einzelteil/Einzelteil_T04.csv") %>% select(3,6) %>% 
+  semi_join(partList, by = c("ID_T04" = "ID_T"))
 
 einzelteil_t05 <- fread("Data/Einzelteil/Einzelteil_T05.csv") %>% 
   select(3, 7, 10, 14) %>% 
   merge_xy() %>% 
-  rename(ID_T05 = V1, Fehlerhaft = V2)
+  rename(ID_T05 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T05" = "ID_T"))
 
-einzelteil_t06 <- fread("Data/Einzelteil/Einzelteil_T06.csv") %>% select(3,6)
+einzelteil_t06 <- fread("Data/Einzelteil/Einzelteil_T06.csv") %>% select(3,6) %>% 
+  semi_join(partList, by = c("ID_T06" = "ID_T"))
 
 einzelteil_t07 <- read_file("Data/Einzelteil/Einzelteil_T07.txt") %>% 
   str_replace_all("\"\"", "\"\n\"") %>% 
   fread() %>% 
-  select(3,6)
+  select(3,6) %>% 
+  semi_join(partList, by = c("ID_T07" = "ID_T"))
 
-einzelteil_t08 <- fread("Data/Einzelteil/Einzelteil_T08.csv") %>% select(3,6)
+einzelteil_t08 <- fread("Data/Einzelteil/Einzelteil_T08.csv") %>% select(3,6) %>% 
+  semi_join(partList, by = c("ID_T08" = "ID_T"))
 
 einzelteil_t09 <- read_file("Data/Einzelteil/Einzelteil_T09.txt") %>% 
   str_replace_all("[:cntrl:]", "\n") %>% 
   fread(sep = "\\") %>% 
   select(3, 7, 10, 14) %>% 
   merge_xy() %>% 
-  rename(ID_T09 = V1, Fehlerhaft = V2)
+  rename(ID_T09 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T09" = "ID_T"))
 
-einzelteil_t10 <- fread("Data/Einzelteil/Einzelteil_T10.csv") %>% select(3,6)
+einzelteil_t10 <- fread("Data/Einzelteil/Einzelteil_T10.csv") %>% select(3,6) %>% 
+  semi_join(partList, by = c("ID_T10" = "ID_T"))
 
 einzelteil_t11 <- read_file("Data/Einzelteil/Einzelteil_T11.txt") %>% 
   str_replace_all("\t", ";") %>% 
   str_replace_all("[:cntrl:]", "\n") %>%
   fread() %>% 
-  select(3,6)
+  select(3,6) %>% 
+  semi_join(partList, by = c("ID_T11" = "ID_T"))
 
 einzelteil_t12 <- fread("Data/Einzelteil/Einzelteil_T12.csv") %>% 
   select(3, 7, 10, 14, 17, 21) %>% 
   merge_xyz() %>% 
-  rename(ID_T12 = V1, Fehlerhaft = V2)
+  rename(ID_T12 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T12" = "ID_T"))
 
-einzelteil_t13 <- fread("Data/Einzelteil/Einzelteil_T13.csv", dec = ",") %>% select(3,6)
+einzelteil_t13 <- fread("Data/Einzelteil/Einzelteil_T13.csv", dec = ",") %>% select(3,6) %>% 
+  semi_join(partList, by = c("ID_T13" = "ID_T"))
 
-einzelteil_t14 <- fread("Data/Einzelteil/Einzelteil_T14.csv", dec = ",") %>% select(3,6)
+einzelteil_t14 <- fread("Data/Einzelteil/Einzelteil_T14.csv", dec = ",") %>% select(3,6) %>% 
+  semi_join(partList, by = c("ID_T14" = "ID_T"))
 
 einzelteil_t15 <- fread("Data/Einzelteil/Einzelteil_T15.csv", dec = ",") %>% 
   select(3, 7, 10, 14) %>% 
   merge_xy() %>% 
-  rename(ID_T15 = V1, Fehlerhaft = V2)
+  rename(ID_T15 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T15" = "ID_T"))
 
 einzelteil_t16 <- read_file("Data/Einzelteil/Einzelteil_T16.txt") %>% 
   str_replace_all(" \\| \\| ", ";") %>% 
@@ -465,24 +571,30 @@ einzelteil_t16 <- read_file("Data/Einzelteil/Einzelteil_T16.txt") %>%
   fread() %>% 
   select(3, 7, 10, 14, 17, 21) %>% 
   merge_xyz() %>% 
-  rename(ID_T16 = V1, Fehlerhaft = V2)
+  rename(ID_T16 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T16" = "ID_T"))
 
 einzelteil_t17 <- fread("Data/Einzelteil/Einzelteil_T17.csv", dec = ",") %>% 
   select(3, 7, 10, 14, 17, 21) %>% 
   merge_xyz() %>% 
-  rename(ID_T17 = V1, Fehlerhaft = V2)
+  rename(ID_T17 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T17" = "ID_T"))
 
-einzelteil_t18 <- fread("Data/Einzelteil/Einzelteil_T18.csv", dec = ",") %>% select(3,6)
+einzelteil_t18 <- fread("Data/Einzelteil/Einzelteil_T18.csv", dec = ",") %>% select(3,6) %>% 
+  semi_join(partList, by = c("ID_T18" = "ID_T"))
 
-einzelteil_t19 <- fread("Data/Einzelteil/Einzelteil_T19.csv") %>% select(3,6)
+einzelteil_t19 <- fread("Data/Einzelteil/Einzelteil_T19.csv") %>% select(3,6) %>% 
+  semi_join(partList, by = c("ID_T19" = "ID_T"))
 
 einzelteil_t20 <- read_file("Data/Einzelteil/Einzelteil_T20.txt") %>% 
   str_replace_all(" \\| \\| ", ";") %>% 
   str_replace_all(" ", "\n") %>% 
   fread() %>% 
-  select(3, 6)
+  select(3, 6) %>% 
+  semi_join(partList, by = c("ID_T20" = "ID_T"))
 
-einzelteil_t21 <- fread("Data/Einzelteil/Einzelteil_T21.csv", dec = ",") %>% select(3,6)
+einzelteil_t21 <- fread("Data/Einzelteil/Einzelteil_T21.csv", dec = ",") %>% select(3,6) %>% 
+  semi_join(partList, by = c("ID_T21" = "ID_T"))
 
 einzelteil_t22 <- read_file("Data/Einzelteil/Einzelteil_T22.txt") %>% 
   str_replace_all("NA\"", "\n\"") %>%
@@ -492,12 +604,14 @@ einzelteil_t22 <- read_file("Data/Einzelteil/Einzelteil_T22.txt") %>%
   fread() %>% 
   select(3, 7, 10, 14, 17, 21) %>% 
   merge_xyz() %>% 
-  rename(ID_T22 = V1, Fehlerhaft = V2)
+  rename(ID_T22 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T22" = "ID_T"))
 
 einzelteil_t23 <- fread("Data/Einzelteil/Einzelteil_T23.csv", dec = ",") %>% 
   select(3, 7, 10, 14) %>% 
   merge_xy() %>% 
-  rename(ID_T23 = V1, Fehlerhaft = V2)
+  rename(ID_T23 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T23" = "ID_T"))
 
 einzelteil_t24 <- read_file("Data/Einzelteil/Einzelteil_T24.txt") %>% 
   str_replace_all("   ", ";") %>% 
@@ -505,41 +619,50 @@ einzelteil_t24 <- read_file("Data/Einzelteil/Einzelteil_T24.txt") %>%
   fread() %>% 
   select(3, 7, 10, 14, 17, 21) %>% 
   merge_xyz() %>% 
-  rename(ID_T24 = V1, Fehlerhaft = V2)
+  rename(ID_T24 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T24" = "ID_T"))
 
-einzelteil_t25 <- fread("Data/Einzelteil/Einzelteil_T25.csv", dec = ",") %>% select(3,6)
+einzelteil_t25 <- fread("Data/Einzelteil/Einzelteil_T25.csv", dec = ",") %>% select(3,6) %>% 
+  semi_join(partList, by = c("ID_T25" = "ID_T"))
 
-einzelteil_t26 <- fread("Data/Einzelteil/Einzelteil_T26.csv", dec = ",") %>% select(3,6)
+einzelteil_t26 <- fread("Data/Einzelteil/Einzelteil_T26.csv", dec = ",") %>% select(3,6) %>% 
+  semi_join(partList, by = c("ID_T26" = "ID_T"))
 
 einzelteil_t27 <- read_file("Data/Einzelteil/Einzelteil_T27.txt") %>% 
   str_replace_all(" \\| \\| ", ";") %>% 
   str_replace_all("[:cntrl:]", "\n") %>%
   fread() %>% 
-  select(3,6)
+  select(3,6) %>% 
+  semi_join(partList, by = c("ID_T27" = "ID_T"))
 
 einzelteil_t30 <- fread("Data/Einzelteil/Einzelteil_T30.csv") %>% 
   select(3, 7, 10, 14, 17, 21) %>% 
   merge_xyz() %>% 
-  rename(ID_T30 = V1, Fehlerhaft = V2)
+  rename(ID_T30 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T30" = "ID_T"))
 
 einzelteil_t31 <- read_file("Data/Einzelteil/Einzelteil_T31.txt") %>% 
   str_replace_all("  ", ";") %>% 
   str_replace_all("[:cntrl:]", "\n") %>%
   fread() %>% 
-  select(3,6)
+  select(3,6) %>% 
+  semi_join(partList, by = c("ID_T31" = "ID_T"))
 
 einzelteil_t32 <- fread("Data/Einzelteil/Einzelteil_T32.csv", dec = ",") %>% 
   select(3, 7, 10, 14) %>% 
   merge_xy() %>% 
-  rename(ID_T32 = V1, Fehlerhaft = V2)
+  rename(ID_T32 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T32" = "ID_T"))
 
-einzelteil_t33 <- fread("Data/Einzelteil/Einzelteil_T33.csv") %>% select(3,6)
+einzelteil_t33 <- fread("Data/Einzelteil/Einzelteil_T33.csv") %>% select(3,6) %>% 
+  semi_join(partList, by = c("ID_T33" = "ID_T"))
 
 einzelteil_t34 <- read_file("Data/Einzelteil/Einzelteil_T34.txt") %>% 
   str_replace_all(" \\| \\| ", ";") %>% 
   str_replace_all("\"\"", "\"\n\"") %>%
   fread() %>% 
-  select(3,6)
+  select(3,6) %>% 
+  semi_join(partList, by = c("ID_T34" = "ID_T"))
 
 einzelteil_t35 <- read_file("Data/Einzelteil/Einzelteil_T35.txt") %>% 
   str_replace_all("\"\"", "\"\n\"") %>%
@@ -548,29 +671,35 @@ einzelteil_t35 <- read_file("Data/Einzelteil/Einzelteil_T35.txt") %>%
   fread(sep = "\\") %>% 
   select(3, 7, 10, 14) %>% 
   merge_xy() %>% 
-  rename(ID_T35 = V1, Fehlerhaft = V2)
+  rename(ID_T35 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T35" = "ID_T"))
 
 einzelteil_t36 <- read_file("Data/Einzelteil/Einzelteil_T36.txt") %>% 
   str_replace_all("  ", ";") %>% 
   str_replace_all(" ", "\n") %>%
   fread() %>% 
-  select(3,6)
+  select(3,6) %>% 
+  semi_join(partList, by = c("ID_T36" = "ID_T"))
 
-einzelteil_t37 <- fread("Data/Einzelteil/Einzelteil_T37.csv") %>% select(3,6)
+einzelteil_t37 <- fread("Data/Einzelteil/Einzelteil_T37.csv") %>% select(3,6) %>% 
+  semi_join(partList, by = c("ID_T37" = "ID_T"))
 
 einzelteil_t38 <- fread("Data/Einzelteil/Einzelteil_T38.csv") %>% 
   select(3, 7, 10, 14) %>% 
   merge_xy() %>% 
-  rename(ID_T35 = V1, Fehlerhaft = V2)
+  rename(ID_T38 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T38" = "ID_T"))
 
 einzelteil_t39 <- read_file("Data/Einzelteil/Einzelteil_T39.txt") %>% 
   str_replace_all("[:cntrl:]", "\n") %>%
   fread(sep = "\\") %>% 
   select(3, 7, 10, 14) %>% 
   merge_xy() %>% 
-  rename(ID_T35 = V1, Fehlerhaft = V2)
+  rename(ID_T39 = V1, Fehlerhaft = V2) %>% 
+  semi_join(partList, by = c("ID_T39" = "ID_T"))
 
-einzelteil_t40 <- fread("Data/Einzelteil/Einzelteil_T40.csv") %>% select(3,6)
+einzelteil_t40 <- fread("Data/Einzelteil/Einzelteil_T40.csv") %>% select(3,6) %>% 
+  semi_join(partList, by = c("ID_T40" = "ID_T"))
 
 
 ```
@@ -588,7 +717,8 @@ komponente_all <- rbind(komponente_k1be1, komponente_k1be2, komponente_k1di1, ko
 rm(komponente_k1be1, komponente_k1be2, komponente_k1di1, komponente_k1di2,
    komponente_k2le1, komponente_k2le2, komponente_k2st1, komponente_k2st2,
    komponente_k3ag1, komponente_k3ag2, komponente_k3sg1, komponente_k3sg2,
-   komponente_k4, komponente_k5, komponente_k6, komponente_k7)
+   komponente_k4, komponente_k5, komponente_k6, komponente_k7,
+   componentList)
 
 ```
 
@@ -612,7 +742,9 @@ rm(einzelteil_t01,einzelteil_t02,einzelteil_t03,einzelteil_t04,einzelteil_t05,
    einzelteil_t21,einzelteil_t22,einzelteil_t23,einzelteil_t24,einzelteil_t25,
    einzelteil_t26,einzelteil_t27, einzelteil_t30,
    einzelteil_t31,einzelteil_t32,einzelteil_t33,einzelteil_t34,einzelteil_t35,
-   einzelteil_t36,einzelteil_t37,einzelteil_t38,einzelteil_t39,einzelteil_t40)
+   einzelteil_t36,einzelteil_t37,einzelteil_t38,einzelteil_t39,einzelteil_t40,
+   partList)
+
 ```
 
 ## 3. Creation of final data set
@@ -674,6 +806,47 @@ zulassungen_final <- zulassungen_part %>%
            `Defective Part 10`, `Defective Part 11`, `Defective Part 12`, `Defective Part 13`, `Defective Part 14`,
            `Defective Part 15`, na.rm = TRUE))
 ```
+
+### Updating the defective data of vehicle and components
+If any component inside the vehicle is defect, then the vehicle should be marked as defective respectively, even though the data from the OEM indicates otherwise. Similar logic applies to the part level. For example, if any of part 1, 2, 3, 4, or 5 (which are all parts of karosserie) is defect, then karosserie must be marked as defect.
+```{r message = FALSE, warning = FALSE}
+zulassungen_final$`Defective Karosserie` <- replace(zulassungen_final$`Defective Karosserie`,
+                                                      zulassungen_final$`Defective Part 1` > 0 | 
+                                                        zulassungen_final$`Defective Part 2` > 0| 
+                                                        zulassungen_final$`Defective Part 3` > 0| 
+                                                        zulassungen_final$`Defective Part 4` > 0| 
+                                                        zulassungen_final$`Defective Part 5` > 0,
+                                                      1)
+
+zulassungen_final$`Defective Transmission` <- replace(zulassungen_final$`Defective Transmission`,
+                                                      zulassungen_final$`Defective Part 6` > 0 | 
+                                                        zulassungen_final$`Defective Part 7` > 0| 
+                                                        zulassungen_final$`Defective Part 8` > 0,
+                                                      1)
+
+zulassungen_final$`Defective Seat` <- replace(zulassungen_final$`Defective Seat`,
+                                                      zulassungen_final$`Defective Part 9` > 0 | 
+                                                        zulassungen_final$`Defective Part 10` > 0| 
+                                                        zulassungen_final$`Defective Part 11` > 0,
+                                                      1)
+
+zulassungen_final$`Defective Motor` <- replace(zulassungen_final$`Defective Motor`,
+                                                      zulassungen_final$`Defective Part 12` > 0 | 
+                                                        zulassungen_final$`Defective Part 13` > 0| 
+                                                        zulassungen_final$`Defective Part 14` > 0| 
+                                                        zulassungen_final$`Defective Part 15` > 0,
+                                                      1)
+
+zulassungen_final$`Defective Vehicle` <- replace(zulassungen_final$`Defective Vehicle`,
+                                                      zulassungen_final$`Defective Karosserie` > 0 | 
+                                                        zulassungen_final$`Defective Transmission` > 0| 
+                                                        zulassungen_final$`Defective Seat` > 0| 
+                                                        zulassungen_final$`Defective Motor` > 0,
+                                                      1)
+
+```
+
+
 
 ### Counting number of components and single parts in each vehicle
 ```{r message = FALSE, warning = FALSE}
