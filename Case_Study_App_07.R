@@ -34,71 +34,59 @@ if(!require("lubridate")){
   library(lubridate)
 }
 
-if(!require("shinythemes")){
-  install.packages("shinythemes")
-  library(shinythemes)
-}
-
 final_dataset <- read_delim("Final_dataset_group_07.csv",delim = ",")
 
-ui <- navbarPage( 
-  theme = shinytheme("cerulean"),
-  
-  # App title ----
-  titlePanel("IDA Case Study. Group# 07"),
-  img(src = "qw_gross.png",width = 250, height = 250, align = "right"),
-  
+ui <- fluidPage(
   #Styling with css
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
   ),
-  
-  tabPanel("tab1", "contents"),
-  tabPanel("tab2", "contents"),
-
+  # App title ----
+  titlePanel("IDA Case Study. Group# 07"),
+  img(src = "qw_gross.png",width = 125, height = 125),
   # Sidebar layout with a input and output definitions ----
   
+  
+  
+  
+  # Sidebar panel for inputs ----
+  # sidebarPanel(
+  #   
+  #   # Input: Numeric entry for number of obs to view ----
+  #   numericInput(inputId = "obs",
+  #                label = "Number of observations to view:",
+  #                value = 10)
+  # ),
+  
+  # Main panel for displaying outputs ----
+  mainPanel(
     
-    
-    
-    # Sidebar panel for inputs ----
-    # sidebarPanel(
-    #   
-    #   # Input: Numeric entry for number of obs to view ----
-    #   numericInput(inputId = "obs",
-    #                label = "Number of observations to view:",
-    #                value = 10)
-    # ),
-    
-    # Main panel for displaying outputs ----
-    mainPanel(
-      
-      tabsetPanel(type = "tabs",
-                  tabPanel("Summary", verbatimTextOutput("summary")),
-                  tabPanel("View", tableOutput("view")),
-                  tabPanel("Plot",
-                           fluidRow(
-                             sidebarLayout(
-                               sidebarPanel(
-                                 selectInput("Gemeinden","Gemeinden: ",c(""),multiple = TRUE),
-                                 dateRangeInput("daterange","Date range:",start = min(final_dataset$Zulassung),end=max(final_dataset$Zulassung),min = min(final_dataset$Zulassung),max=max(final_dataset$Zulassung))
-                               ),
-                               mainPanel(
-                                 plotOutput(outputId ="plot")
-                               ),
-                               position = "left")
-                           )
-                  )
-      )
-      )
-      # Output: Verbatim text for data summary ----
-      
-      
-      # Output: HTML table with requested number of observations ----
-      
-      
-    
+    tabsetPanel(type = "tabs",
+                tabPanel("Summary", verbatimTextOutput("summary")),
+                tabPanel("View", tableOutput("view")),
+                tabPanel("Plot",
+                         fluidRow(
+                           sidebarLayout(
+                             sidebarPanel(
+                               selectInput("Gemeinden","Gemeinden: ",c(""),multiple = TRUE),
+                               dateRangeInput("daterange","Date range:",start = min(final_dataset$Zulassung),end=max(final_dataset$Zulassung),min = min(final_dataset$Zulassung),max=max(final_dataset$Zulassung))
+                             ),
+                             mainPanel(
+                               plotOutput(outputId ="plot")
+                             ),
+                             position = "left")
+                         )
+                )
+    )
   )
+  # Output: Verbatim text for data summary ----
+  
+  
+  # Output: HTML table with requested number of observations ----
+  
+  
+  
+)
 
 
 server <- function(input,output){
