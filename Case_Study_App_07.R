@@ -29,7 +29,7 @@ if(!require("modelr")){
   library(modelr)
 }
 
-final_dataset <- read_delim("Additional files/Final_dataset_group_07.csv",delim = ",")
+final_dataset <- read_delim("Final_dataset_group_07.csv",delim = ",")
 
 ui <- fluidPage(
   #Styling with css
