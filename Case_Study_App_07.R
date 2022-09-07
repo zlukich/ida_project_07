@@ -30,7 +30,7 @@ if(!require("modelr")){
 }
 
 final_dataset <- read_delim("Additional files/Final_dataset_group_07.csv",delim = ",")
-# SOme major changes
+
 ui <- fluidPage(
   #Styling with css
   tags$head(
