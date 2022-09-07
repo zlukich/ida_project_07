@@ -23,10 +23,14 @@ if(!require("shiny")){
   install.packages("shiny")
   library(shiny)
 }
-
 if(!require("modelr")){
   install.packages("modelr")
   library(modelr)
+}
+
+if(!require("lubridate")){
+  install.packages("lubridate")
+  library(lubridate)
 }
 
 final_dataset <- read_delim("Additional files/Final_dataset_group_07.csv",delim = ",")
@@ -40,18 +44,18 @@ ui <- fluidPage(
   titlePanel("IDA Case Study. Group# 07"),
   img(src = "qw_gross.png",width = 125, height = 125),
   # Sidebar layout with a input and output definitions ----
-  sidebarLayout(
+  
     
     
     
     # Sidebar panel for inputs ----
-    sidebarPanel(
-      
-      # Input: Numeric entry for number of obs to view ----
-      numericInput(inputId = "obs",
-                   label = "Number of observations to view:",
-                   value = 10)
-    ),
+    # sidebarPanel(
+    #   
+    #   # Input: Numeric entry for number of obs to view ----
+    #   numericInput(inputId = "obs",
+    #                label = "Number of observations to view:",
+    #                value = 10)
+    # ),
     
     # Main panel for displaying outputs ----
     mainPanel(
@@ -59,7 +63,19 @@ ui <- fluidPage(
       tabsetPanel(type = "tabs",
                   tabPanel("Summary", verbatimTextOutput("summary")),
                   tabPanel("View", tableOutput("view")),
-                  tabPanel("Plot", plotOutput("plot")
+                  tabPanel("Plot",
+                           fluidRow(
+                             sidebarLayout(
+                               sidebarPanel(
+                                 selectInput("Gemeinden","Gemeinden: ",c(""),multiple = TRUE),
+                                 dateRangeInput("daterange","Date range:",start = min(final_dataset$Zulassung),end=max(final_dataset$Zulassung),min = min(final_dataset$Zulassung),max=max(final_dataset$Zulassung))
+                               ),
+                               mainPanel(
+                                 plotOutput(outputId ="plot")
+                               ),
+                               position = "left")
+                           )
+                  )
       )
       )
       # Output: Verbatim text for data summary ----
@@ -68,9 +84,9 @@ ui <- fluidPage(
       # Output: HTML table with requested number of observations ----
       
       
-    )
+    
   )
-)
+
 
 server <- function(input,output){
   # Return the requested dataset ----
@@ -92,16 +108,12 @@ server <- function(input,output){
     head(final_dataset, n = input$obs)
   })
   
-  output$plot <- renderPlot({
-    final_dataset_year = final_dataset %>% mutate(date_year =(year(Zulassung))) %>%
-      rename(anzahl = 'Number of Vehicle') %>%
-      group_by(date_year,Herstellernummer,Gemeinden) %>% 
-      summarize(n = sum(anzahl))
-    ggplot(final_dataset_year)+
-      geom_line(aes(x = date_year,y = n, colour = Gemeinden))+
-      facet_wrap(~Herstellernummer)
-    
-    })
+  output$plot <-renderPlot({
+    #final_dataset%>%group_by(Gemeiden)%>%summarise(total_sell = sum(`Number of Vehicle`))
+    final_dataset%>%filter(Gemeinden %in% input$Gemeinden )%>%filter(Zulassung >= input$daterange[1] & Zulassung <=input$daterange[2] )%>%
+      ggplot(aes(x=Zulassung ,y=`Number of Vehicle`,color = Gemeinden))+
+      geom_line()
+  })
 }
 
 shinyApp(ui = ui, server = server)

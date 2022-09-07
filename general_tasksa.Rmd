@@ -21,13 +21,13 @@ library(lubridate)
 ## **1 Aufgabe**
 Komponente K7
 ```{r}
-komponente_k7 = read_delim("Logistikverzug/Komponente_K7.csv",delim = ";")
+komponente_k7 = read_delim("Data/Logistikverzug/Komponente_K7.csv",delim = ";")
 print(komponente_k7)
 ```
 
 Logistics delay
 ```{r}
-logverzug_k7 = read_delim("Logistikverzug/Logistikverzug_K7.csv",delim = ",")
+logverzug_k7 = read_delim("Data/Logistikverzug/Logistikverzug_K7.csv",delim = ",")
 print(logverzug_k7)
 
 ```
@@ -202,4 +202,33 @@ all_bestand_fahrzeuge = inner_join(all_bestand,all_fahrzeuge,by = "ID_Fahrzeug")
 all_bestand_fahrzeuge_zulassungen = inner_join(all_bestand_fahrzeuge,zulassungen,by = c("ID_Fahrzeug"="IDNummer"))
 
 all_bestand_fahrzeuge_zulassungen %>% filter(ID_Karosserie == "K5-112-1122-79")
+```
+
+```{r model preparing, warning = FALSE, message = FALSE}
+final_dataset <- read_delim("Additional files/Final_dataset_group_07.csv",delim = ",")
+library(modelr)
+```
+
+
+```{r model, warning = FALSE}
+hersteller_sales = final_dataset %>% rename(n = 'Number of Vehicle')%>%group_by(Herstellernummer,Zulassung) %>% summarize(vehicles_sold = sum(n))
+hersteller_sales$Herstellernummer = as.character(hersteller_sales$Herstellernummer)
+oem1_sales = hersteller_sales %>% filter(Herstellernummer ==1)
+oem2_sales = hersteller_sales %>% filter(Herstellernummer ==2)
+
+hersteller_month = hersteller_sales %>% mutate(year_month = format(as.Date(Zulassung),"%Y-%m")) %>% group_by(Herstellernummer,year_month) %>% summarize(vehicles_sold = sum(vehicles_sold))
+
+oem1_month = hersteller_month %>% filter(Herstellernummer == 1)
+oem2_month = hersteller_month %>% filter(Herstellernummer == 2)
+
+lm_model_1 = lm(vehicles_sold~year_month,data = oem1_month)
+lm_model_2 = lm(vehicles_sold~year_month,data = oem2_month)
+
+predictions_1 = oem1_month %>% select(-vehicles_sold)
+predictions_1 = rbind(predictions_1,c(Herstellernummer =1,year_month ="2017-1"))
+predictions_1 = rbind(predictions_1,c(Herstellernummer =1,year_month ="2017-2"))
+predictions_1 = rbind(predictions_1,c(Herstellernummer =1,year_month ="2017-3"))
+
+head(hersteller_sales)
+
 ```

@@ -1,0 +1,50 @@
+---
+title: "General_Task_07"
+author: "Group07"
+date: '2022-08-14'
+output: html_document
+---
+```{r libraries, include = FALSE}
+options(stringsAsFactors = F)
+
+# Überprüfen, ob die Packages bereits installiert sin
+if(!require(readr)){
+  # wenn es nicht installiert ist, wird es nun installiert
+  install.packages("readr", dependencies = TRUE)
+  library(readr)
+}
+
+
+if(!require(tidyverse)){
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+
+
+if(!require(moments)){
+  install.packages("moments")
+  library("moments")
+}
+if(!require("plotly")){
+  install.packages("plotly")
+  library(plotly)
+}
+
+if (!require("data.table")) {
+  install.packages("data.table")
+  library(data.table)
+}
+library(plotly)
+```
+
+```{r}
+final_dataset = read_delim("Additional files/Final_dataset_group_07.csv")
+```
+
+```{r}
+oem1 = final_dataset %>% filter(Herstellernummer == 1)
+oem2 = final_dataset %>% filter(Herstellernummer == 2)
+
+
+
+```
