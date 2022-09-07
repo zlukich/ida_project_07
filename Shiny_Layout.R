@@ -42,8 +42,8 @@ if(!require("shinydashboard")){
 ui <- fluidPage(
   theme = shinytheme("cerulean"),
 
-  titlePanel(div(column(width = 10, h2("IDA Study Case Group 07")),
-                 column(width = 1, tags$img(src = "qw_gross_trimmed.png", height = 50, width = 125))),
+  titlePanel(div(column(width = 5, h2("IDA Study Case Group 07")),
+                 column(width = 1, tags$img(src = "qw_gross_trimmed.png", height = 40, width = 150))),
              windowTitle="TitlePage"),
   mainPanel(
     
