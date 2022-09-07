@@ -9,7 +9,7 @@ if(!require(readr)){
 }
 
 
-if(!require(tidyverse)){
+if(!require("tidyverse")){
   install.packages("tidyverse")
   library(tidyverse)
 }
