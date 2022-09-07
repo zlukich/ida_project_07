@@ -9,7 +9,7 @@ if(!require(readr)){
 }
 
 
-if(!require(tidyverse)){
+if(!require("tidyverse")){
   install.packages("tidyverse")
   library(tidyverse)
 }
@@ -28,6 +28,7 @@ if(!require("modelr")){
   library(modelr)
 }
 
+<<<<<<< HEAD
 if(!require("lubridate")){
   install.packages("lubridate")
   library(lubridate)
@@ -35,6 +36,10 @@ if(!require("lubridate")){
 
 final_dataset <- read_delim("Additional files/Final_dataset_group_07.csv",delim = ",")
 # SOme major changes
+=======
+final_dataset <- read_delim("Final_dataset_group_07.csv",delim = ",")
+
+>>>>>>> fcedb017c3a4710276656f37149eb1a6e5bd7287
 ui <- fluidPage(
   #Styling with css
   tags$head(
