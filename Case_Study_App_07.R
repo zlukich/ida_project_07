@@ -34,16 +34,28 @@ if(!require("lubridate")){
   library(lubridate)
 }
 
+if(!require("shinythemes")){
+  install.packages("shinythemes")
+  library(shinythemes)
+}
+
 final_dataset <- read_delim("Final_dataset_group_07.csv",delim = ",")
 
-ui <- fluidPage(
+ui <- navbarPage( 
+  theme = shinytheme("cerulean"),
+  
+  # App title ----
+  titlePanel("IDA Case Study. Group# 07"),
+  img(src = "qw_gross.png",width = 250, height = 250, align = "right"),
+  
   #Styling with css
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
   ),
-  # App title ----
-  titlePanel("IDA Case Study. Group# 07"),
-  img(src = "qw_gross.png",width = 125, height = 125),
+  
+  tabPanel("tab1", "contents"),
+  tabPanel("tab2", "contents"),
+
   # Sidebar layout with a input and output definitions ----
   
     
