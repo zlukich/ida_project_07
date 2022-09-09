@@ -133,3 +133,24 @@ plt = ggplot(data = daily_result)+
 plt
 ggsave("monthly.png",plt)
 ```
+
+
+#Auto Arima approach
+
+```{r auto arima}
+# Time series table
+dat_ts = ts(oem1_monthly$vehicles_sold,start = c(2014,1),end = c(2016,12),frequency = 12)
+
+arimamodel = auto.arima(dat_ts)
+fore_arima = forecast::forecast(arimamodel,h = 12)
+df_arima = as.data.frame(fore_arima)
+plot(fore_arima)
+abline(v = 2017,col = "red")
+```
+
+
+
+
+
+
+

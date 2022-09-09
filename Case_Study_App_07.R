@@ -147,7 +147,7 @@ ui <- fluidPage(
                  sidebarLayout(
                    sidebarPanel(
                      radioButtons("date_selection","Select scale by: ",
-                                  choices = c("Daily","Weekly","Monthly")),
+                                  choices = c("Daily","Weekly","Monthly","Arima")),
                    ),
                    mainPanel(
                      plotlyOutput(outputId ="regression_plot")
@@ -204,11 +204,29 @@ server <- function(input,output){
       oem1_data = oem1_weekly
       oem2_data = oem2_weekly
     }
-    else{
+    else if(input$date_selection == "Monthly"){
       lmmodel1 = lmmodel1_monthly
       lmmodel2 = lmmodel2_monthly
       oem1_data = oem1_monthly
       oem2_data = oem2_monthly
+    }else{
+      dat_ts = ts(oem1_monthly$vehicles_sold,start = c(2014,1),end = c(2016,12),frequency = 12)
+      arimamodel = auto.arima(dat_ts)
+      fore_arima = forecast::forecast(arimamodel,h = 12)
+      df_arima = as.data.frame(fore_arima)
+      df_arima$date = as.Date(seq(ISOdate(2017,1,1),ISOdate(2017,12,1),by = "month"))
+      df_arima = df_arima %>% rename(vehicles_sold ='Point Forecast')
+      
+      return(
+        ggplotly(
+        ggplot()+
+          geom_line(data = oem1_monthly,aes(date,vehicles_sold),color = "blue")+
+          geom_line(data = df_arima,aes(date,vehicles_sold),color = "red") +
+          ggtitle(paste0("Linear regression for OEM1 and OEM2 based on ", input$date_selection ," basis"))+
+          geom_vline(aes(xintercept = as.numeric(as.Date(ISOdate(2017,1,1)))))
+          
+      )
+      )
     }
     
     #Generate days for the Q1 of 2017 and make predictions
