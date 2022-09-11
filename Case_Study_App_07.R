@@ -124,7 +124,7 @@ ui <- fluidPage(
                  dataTableOutput(outputId = "view")),
                ),
                
-      tabPanel("Plot",
+      tabPanel("4.a Temporal Course",
                fluidRow(
                  sidebarLayout(
                    sidebarPanel(
@@ -137,7 +137,7 @@ ui <- fluidPage(
                    position = "left")
                )
       ),
-      tabPanel("Defective",
+      tabPanel("4.b Defective",
                fluidRow(
                  sidebarLayout(
                    sidebarPanel(
