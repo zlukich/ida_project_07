@@ -124,11 +124,14 @@ ui <- fluidPage(
                fluidRow(
                  sidebarLayout(
                    sidebarPanel(
-                     selectInput("Gemeinden","Gemeinden: ",choices = unique(final_dataset$Gemeinden),selected = c("BOCHUM"),multiple = TRUE),
+                     selectInput("Gemeinden","Gemeinden: ",
+                                 choices = unique(final_dataset$Gemeinden),
+                                 selected = c("DORTMUND"),
+                                 multiple = TRUE),
                      dateRangeInput("daterange","Date range:",start = min(final_dataset$Zulassung),end=max(final_dataset$Zulassung),min = min(final_dataset$Zulassung),max=max(final_dataset$Zulassung))
                    ),
                    mainPanel(
-                     plotlyOutput(outputId ="plot")
+                     plotlyOutput(outputId ="plot", width = "auto", height = "1000px")
                    ),
                    position = "left")
                )
@@ -144,7 +147,7 @@ ui <- fluidPage(
                      #plotOutput(outputId = "DefectiveVehicle"),
                      #plotOutput(outputId = "DefectiveComp"),
                      #plotOutput(outputId = "DefectiveParts"),
-                     plotlyOutput(outputId = "DefectiveTotal"),        
+                     plotlyOutput(outputId = "DefectiveTotal", width = "auto", height = "1000px"),        
                      tableOutput('table'),
                      tableOutput('pivot')
                    ),
