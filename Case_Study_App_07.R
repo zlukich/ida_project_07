@@ -210,7 +210,8 @@ server <- function(input,output,session){
     )
     ggplotly(ggplot(data= subset4a(),aes(x=Zulassung ,y=`Number of Vehicle`,color = Gemeinden))+
       geom_line()+
-        facet_grid(Herstellernummer~.))
+        facet_grid(Herstellernummer~.)+
+        ggtitle("Sales Course"))
   })
   #fehlter plot
   updateSelectInput(session,inputId = "Gemeinden1",choices=unique(final_dataset$Gemeinden),selected = "BOCHUM")
@@ -226,7 +227,8 @@ server <- function(input,output,session){
       need(input$Gemeinden1, "To render a plot please select a Gemeinde")
     )
     ggplotly(ggplot(data=df_pivoted(),aes(x=Herstellernummer,y=value,fill=name))+
-               geom_bar(stat="identity",position = "dodge"))
+               geom_bar(stat="identity",position = "dodge")+
+               ggtitle("Defective"))
   })
   
   output$regression_plot<- renderPlotly({
