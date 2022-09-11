@@ -209,7 +209,7 @@ server <- function(input,output,session){
       geom_line())
   })
   #fehlter plot
-  updateSelectInput(session,inputId = "Gemeinden1",choices=unique(final_dataset$Gemeinden))
+  updateSelectInput(session,inputId = "Gemeinden1",choices=unique(final_dataset$Gemeinden),selected = "BOCHUM")
   fehlerVehicle<<-reactive(final_dataset%>%filter(Gemeinden %in% input$Gemeinden1 )%>%group_by(Herstellernummer)%>%filter(Zulassung >= input$daterange1[1] & Zulassung <=input$daterange1[2] )%>%summarize(TotalVehicle=sum(`Number of Vehicle`),TotalDefectiveVehicle=sum(`Defective Vehicle`),TotalComponents=sum(`Number of Components`),TotalDefectiveComponents=sum(`Defective Components`),TotalParts=sum(`Number of Parts`),TotalDefectiveParts=sum(`Defective Parts`))%>%mutate(rateVehicle=TotalDefectiveVehicle*100/TotalVehicle)%>%mutate(rateComponents=TotalDefectiveComponents*100/TotalComponents)%>%mutate(rateParts=TotalDefectiveParts*100/TotalParts))
   
   output$table <- renderTable(fehlerVehicle())
