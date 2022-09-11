@@ -118,11 +118,7 @@ ui <- fluidPage(
     
     tabsetPanel(
       type = "tabs",
-      tabPanel("Summary", verbatimTextOutput("summary")),
-      tabPanel("View",
-               fluidRow(
-                 dataTableOutput(outputId = "view")),
-               ),
+      
                
       tabPanel("Plot",
                fluidRow(
@@ -156,7 +152,7 @@ ui <- fluidPage(
                )
       ),
       
-      tabPanel("4.c",
+      tabPanel("4.c Forecast",
                fluidRow(
                  sidebarLayout(
                    sidebarPanel(
@@ -168,7 +164,11 @@ ui <- fluidPage(
                    ),
                    position = "left")
                )
-      )
+      ),
+      tabPanel("4.d View",
+               fluidRow(
+                 dataTableOutput(outputId = "view")),
+      ),
       
       )
   )
