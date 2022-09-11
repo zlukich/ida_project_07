@@ -168,7 +168,7 @@ ui <- fluidPage(
       tabPanel("4.d View",
                fluidRow(
                  dataTableOutput(outputId = "view")),
-      ),
+      )
       
       )
   )
@@ -207,7 +207,9 @@ server <- function(input,output,session){
     )
     ggplotly(ggplot(data= subset4a(),aes(x=Zulassung ,y=`Number of Vehicle`,color = Gemeinden))+
       geom_line()+
-        facet_grid(Herstellernummer~.)+
+        facet_grid(Herstellernummer~.,labeller = labeller(Herstellernummer = 
+                                                            c("1" = "OEM 1",
+                                                              "2" = "OEM 2")))+
         ggtitle("Sales Course"))
   })
   #fehlter plot
@@ -249,23 +251,43 @@ server <- function(input,output,session){
       oem1_data = oem1_monthly
       oem2_data = oem2_monthly
     }else{
-      dat_ts = ts(oem1_monthly$vehicles_sold,start = c(2014,1),end = c(2016,12),frequency = 12)
-      arimamodel = auto.arima(dat_ts)
-      fore_arima = forecast::forecast(arimamodel,h = 12)
-      df_arima = as.data.frame(fore_arima)
-      df_arima$date = as.Date(seq(ISOdate(2017,1,1),ISOdate(2017,12,1),by = "month"))
-      df_arima = df_arima %>% rename(vehicles_sold ='Point Forecast')
+      oem1_monthly = oem1_monthly %>% mutate(hersteller = "OEM 1")
+      oem2_monthly = oem2_monthly %>% mutate(hersteller = "OEM 2")
+      oem_result = rbind(oem1_monthly,oem2_monthly)
+      dat_ts_1 = ts(oem1_monthly$vehicles_sold,start = c(2014,1),end = c(2016,12),frequency = 12)
+      arimamodel_1 = auto.arima(dat_ts_1)
+      fore_arima_1 = forecast::forecast(arimamodel_1,h = 12)
+      df_arima_1 = as.data.frame(fore_arima_1)
+      df_arima_1$date = as.Date(seq(ISOdate(2017,1,1),ISOdate(2017,12,1),by = "month"))
+      df_arima_1 = df_arima_1 %>% rename(vehicles_sold ='Point Forecast') %>%mutate(hersteller = "OEM 1")
       
+      dat_ts_2 = ts(oem2_monthly$vehicles_sold,start = c(2014,1),end = c(2016,12),frequency = 12)
+      arimamodel_2 = auto.arima(dat_ts_2)
+      fore_arima_2 = forecast::forecast(arimamodel_2,h = 12)
+      df_arima_2 = as.data.frame(fore_arima_2)
+      df_arima_2$date = as.Date(seq(ISOdate(2017,1,1),ISOdate(2017,12,1),by = "month"))
+      df_arima_2 = df_arima_2 %>% rename(vehicles_sold ='Point Forecast')%>%mutate(hersteller = "OEM 2")
+      
+      df_arima = rbind(df_arima_1,df_arima_2)
+      
+      # plt1 = plot_ly(data = oem1_monthly,x = ~date,y=~vehicles_sold,type = "scatter",line=list(color='blue'),mode = "lines") %>%
+      #   add_trace(data = df_arima_1,x = ~date, y = ~vehicles_sold,type = "scatter",line=list(color='red'),mode = "lines")
+      # 
+      # plt2 = plot_ly(data = oem2_monthly,x = ~date,y=~vehicles_sold,type = "scatter",line=list(color='blue'),mode = "lines") %>%
+      #   add_trace(data = df_arima_2,x = ~date, y = ~vehicles_sold,type = "scatter",line=list(color='red'),mode = "lines")
+      # return(subplot(plt1,plt2,nrow = 2))
       return(
         ggplotly(
         ggplot()+
-          geom_line(data = oem1_monthly,aes(date,vehicles_sold),color = "blue")+
+          geom_line(data = oem_result,aes(date,vehicles_sold),color = "blue")+
           geom_line(data = df_arima,aes(date,vehicles_sold),color = "red") +
           ggtitle(paste0("Linear regression for OEM1 and OEM2 based on ", input$date_selection ," basis"))+
-          geom_vline(aes(xintercept = as.numeric(as.Date(ISOdate(2017,1,1)))))
-          
+          geom_vline(aes(xintercept = as.numeric(as.Date(ISOdate(2017,1,1)))))+
+          facet_grid(hersteller~.)
+
       )
       )
+      
     }
     
     #Generate days for the Q1 of 2017 and make predictions
@@ -292,7 +314,9 @@ server <- function(input,output,session){
     ggplotly(ggplot(data = daily_result)+
       geom_point(aes(x = date,y = vehicles_sold,color = type),alpha = 0.5)+
       geom_vline(aes(xintercept = as.numeric(as.Date(ISOdate(2017,1,1)))))+
-      facet_grid(Herstellernummer~.)+
+      facet_grid(Herstellernummer~.,,labeller = labeller(Herstellernummer = 
+                                                           c("1" = "OEM 1",
+                                                             "2" = "OEM 2")))+
       ggtitle(paste0("Linear regression for OEM1 and OEM2 based on ", input$date_selection ," basis")))
   })
 }
