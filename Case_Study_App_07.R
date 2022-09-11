@@ -37,6 +37,10 @@ if(!require("shinythemes")){
   install.packages("shinythemes")
   library(shinythemes)
 }
+if(!require("forecast")){
+  install.packages("forecast")
+  library(forecast)
+}
 
 final_dataset <- read_delim("Final_dataset_group_07.csv",delim = ",")
 
@@ -98,12 +102,12 @@ lmmodel2_monthly = lm(vehicles_sold ~ date,data = oem2_monthly)
 
 
 ui <- fluidPage(
-  theme = shinytheme("cerulean"),
+  #theme = shinytheme("cosmo"),
   
   #Styling with css
-#  tags$head(
-#    tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
-#  ),
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
+  ),
   # App title ----
   titlePanel(div(column(width = 7, h2("IDA Study Case Group 07")),
                  column(width = 1, tags$img(src = "qw_gross_trimmed.png", height = 70, width = 125))),
@@ -115,13 +119,9 @@ ui <- fluidPage(
     tabsetPanel(
       type = "tabs",
       tabPanel("Summary", verbatimTextOutput("summary")),
-      tabPanel("View", 
+      tabPanel("View",
                fluidRow(
-                 numericInput(inputId = "obs",
-                              label = "Number of observations to view:",
-                              value = 10)),
-               fluidRow(
-                 tableOutput(outputId = "view")),
+                 dataTableOutput(outputId = "view")),
                ),
                
       tabPanel("Plot",
@@ -178,8 +178,8 @@ server <- function(input,output){
   })
   
   # Show the first "n" observations ----
-  output$view <- renderTable({
-    head(final_dataset, n = input$obs)
+  output$view <- renderDataTable({
+    final_dataset
   })
   
   output$plot <-renderPlot({
