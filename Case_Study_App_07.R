@@ -128,19 +128,33 @@ ui <- fluidPage(
                fluidRow(
                  sidebarLayout(
                    sidebarPanel(
-                     selectInput("Gemeinden","Gemeinden: ",c(""),multiple = TRUE),
-                     dateRangeInput("daterange","Date range:",
-                                    start = min(final_dataset$Zulassung),
-                                    end=max(final_dataset$Zulassung),
-                                    min = min(final_dataset$Zulassung),
-                                    max=max(final_dataset$Zulassung))
-                     ),
+                     selectInput("Gemeinden","Gemeinden: ",choices = unique(final_dataset$Gemeinden),selected = c("BOCHUM"),multiple = TRUE),
+                     dateRangeInput("daterange","Date range:",start = min(final_dataset$Zulassung),end=max(final_dataset$Zulassung),min = min(final_dataset$Zulassung),max=max(final_dataset$Zulassung))
+                   ),
                    mainPanel(
-                     plotOutput(outputId ="plot")
-                     ),
+                     plotlyOutput(outputId ="plot")
+                   ),
                    position = "left")
-                 )
-               ),
+               )
+      ),
+      tabPanel("Defective",
+               fluidRow(
+                 sidebarLayout(
+                   sidebarPanel(
+                     selectInput("Gemeinden1","Gemeinden: ",c(""),multiple = TRUE),
+                     dateRangeInput("daterange1","Date range:",start = min(final_dataset$Zulassung),end=max(final_dataset$Zulassung),min = min(final_dataset$Zulassung),max=max(final_dataset$Zulassung))
+                   ),
+                   mainPanel(
+                     #plotOutput(outputId = "DefectiveVehicle"),
+                     #plotOutput(outputId = "DefectiveComp"),
+                     #plotOutput(outputId = "DefectiveParts"),
+                     plotlyOutput(outputId = "DefectiveTotal"),        
+                     tableOutput('table'),
+                     tableOutput('pivot')
+                   ),
+                   position = "left")
+               )
+      ),
       
       tabPanel("4.c",
                fluidRow(
@@ -162,7 +176,7 @@ ui <- fluidPage(
 )
 
 
-server <- function(input,output){
+server <- function(input,output,session){
   # Return the requested dataset ----
   # datasetInput <- reactive({
   #   switch(input$dataset,
@@ -182,11 +196,33 @@ server <- function(input,output){
     final_dataset
   })
   
-  output$plot <-renderPlot({
+  updateSelectInput(session,inputId = "Gemeinden",choices=unique(final_dataset$Gemeinden),selected = "BOCHUM")
+  
+  #plot function 
+  subset4a<<-reactive(final_dataset%>%filter(Gemeinden %in% input$Gemeinden )%>%filter(Zulassung >= input$daterange[1] & Zulassung <=input$daterange[2] ))
+  output$plot <-renderPlotly({
     #final_dataset%>%group_by(Gemeiden)%>%summarise(total_sell = sum(`Number of Vehicle`))
-    final_dataset%>%filter(Gemeinden %in% input$Gemeinden )%>%filter(Zulassung >= input$daterange[1] & Zulassung <=input$daterange[2] )%>%
-      ggplot(aes(x=Zulassung ,y=`Number of Vehicle`,color = Gemeinden))+
-      geom_line()
+    validate(
+      need(input$Gemeinden, "To render a plot please select a Gemeinde")
+    )
+    ggplotly(ggplot(data= subset4a(),aes(x=Zulassung ,y=`Number of Vehicle`,color = Gemeinden))+
+      geom_line())
+  })
+  #fehlter plot
+  updateSelectInput(session,inputId = "Gemeinden1",choices=unique(final_dataset$Gemeinden))
+  fehlerVehicle<<-reactive(final_dataset%>%filter(Gemeinden %in% input$Gemeinden1 )%>%group_by(Herstellernummer)%>%filter(Zulassung >= input$daterange1[1] & Zulassung <=input$daterange1[2] )%>%summarize(TotalVehicle=sum(`Number of Vehicle`),TotalDefectiveVehicle=sum(`Defective Vehicle`),TotalComponents=sum(`Number of Components`),TotalDefectiveComponents=sum(`Defective Components`),TotalParts=sum(`Number of Parts`),TotalDefectiveParts=sum(`Defective Parts`))%>%mutate(rateVehicle=TotalDefectiveVehicle*100/TotalVehicle)%>%mutate(rateComponents=TotalDefectiveComponents*100/TotalComponents)%>%mutate(rateParts=TotalDefectiveParts*100/TotalParts))
+  
+  output$table <- renderTable(fehlerVehicle())
+  
+  df_pivoted <-reactive(pivot_longer(fehlerVehicle(),cols = c('rateVehicle','rateComponents','rateParts')))
+  output$pivot <- renderTable(df_pivoted())
+  
+  output$DefectiveTotal <-renderPlotly({
+    validate(
+      need(input$Gemeinden1, "To render a plot please select a Gemeinde")
+    )
+    ggplotly(ggplot(data=df_pivoted(),aes(x=Herstellernummer,y=value,fill=name))+
+               geom_bar(stat="identity",position = "dodge"))
   })
   
   output$regression_plot<- renderPlotly({
