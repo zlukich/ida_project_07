@@ -147,7 +147,7 @@ ui <- fluidPage(
                      #plotOutput(outputId = "DefectiveVehicle"),
                      #plotOutput(outputId = "DefectiveComp"),
                      #plotOutput(outputId = "DefectiveParts"),
-                     plotlyOutput(outputId = "DefectiveTotal", width = "auto", height = "1000px"),        
+                     plotlyOutput(outputId = "DefectiveTotal", width = "auto", height = "500px"),        
                      tableOutput('table'),
                      tableOutput('pivot')
                    ),
@@ -163,7 +163,7 @@ ui <- fluidPage(
                                   choices = c("Daily","Weekly","Monthly","Arima")),
                    ),
                    mainPanel(
-                     plotlyOutput(outputId ="regression_plot")
+                     plotlyOutput(outputId ="regression_plot", width = "auto", height = "750px")
                    ),
                    position = "left")
                )
