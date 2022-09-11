@@ -12,8 +12,9 @@ pacman::p_load(prettydoc, plotly,DT, lubridate,stats,data.table,readr,dplyr,tidy
 ```
 
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, warning=FALSE}
 final_dataset <- read_csv("Final_dataset_group_07.csv")
+final_dataset$Herstellernummer <- as.factor(final_dataset$Herstellernummer)
 ```
 #basic app
 ```{r inclued=False,warning = FALSE}
@@ -32,27 +33,78 @@ ui <-fluidPage(
                              ),
                            position = "left")
                          )
+                       ),
+              tabPanel("Defective",
+                       fluidRow(
+                         sidebarLayout(
+                           sidebarPanel(
+                             selectInput("Gemeinden1","Gemeinden: ",c(""),multiple = TRUE),
+                             dateRangeInput("daterange1","Date range:",start = min(final_dataset$Zulassung),end=max(final_dataset$Zulassung),min = min(final_dataset$Zulassung),max=max(final_dataset$Zulassung))
+                           ),
+                           mainPanel(
+                             #plotOutput(outputId = "DefectiveVehicle"),
+                             #plotOutput(outputId = "DefectiveComp"),
+                             #plotOutput(outputId = "DefectiveParts"),
+                             plotlyOutput(outputId = "DefectiveTotal"),        
+                             tableOutput('table'),
+                             tableOutput('pivot')
+                           ),
+                           position = "left")
+                         )
                        )
               )
   )
              
 
 server <-function(input, output,session) {
-  final_dataset <- read_csv("Final_dataset_group_07.csv")
+  #final_dataset <- read_csv("Final_dataset_group_07.csv")%>%mutate(rateDefectVehicle=`Defective Vehicle`/`Number of Vehicle`)
   #base on the input of the user the prompted output changes
   updateSelectInput(session,inputId = "Gemeinden",choices=unique(final_dataset$Gemeinden))
   
   #plot function 
+  subset4a<<-reactive(final_dataset%>%filter(Gemeinden %in% input$Gemeinden )%>%filter(Zulassung >= input$daterange[1] & Zulassung <=input$daterange[2] ))
   output$plot <-renderPlot({
     #final_dataset%>%group_by(Gemeiden)%>%summarise(total_sell = sum(`Number of Vehicle`))
-    final_dataset%>%filter(Gemeinden %in% input$Gemeinden )%>%filter(Zulassung >= input$daterange[1] & Zulassung <=input$daterange[2] )%>%
-      ggplot(aes(x=Zulassung ,y=`Number of Vehicle`,color = Gemeinden))+
+    ggplot(data= subset4a(),aes(x=Zulassung ,y=`Number of Vehicle`,color = Gemeinden))+
       geom_line()
   })
+  #fehlter plot
+  updateSelectInput(session,inputId = "Gemeinden1",choices=unique(final_dataset$Gemeinden))
+  fehlerVehicle<<-reactive(final_dataset%>%filter(Gemeinden %in% input$Gemeinden1 )%>%group_by(Herstellernummer)%>%filter(Zulassung >= input$daterange1[1] & Zulassung <=input$daterange1[2] )%>%summarize(TotalVehicle=sum(`Number of Vehicle`),TotalDefectiveVehicle=sum(`Defective Vehicle`),TotalComponents=sum(`Number of Components`),TotalDefectiveComponents=sum(`Defective Components`),TotalParts=sum(`Number of Parts`),TotalDefectiveParts=sum(`Defective Parts`))%>%mutate(rateVehicle=TotalDefectiveVehicle*100/TotalVehicle)%>%mutate(rateComponents=TotalDefectiveComponents*100/TotalComponents)%>%mutate(rateParts=TotalDefectiveParts*100/TotalParts))
+  
+ # output$DefectiveVehicle <-renderPlot({
+  #  ggplot(data = fehlerVehicle(),aes(x=Herstellernummer,y=rateVehicle))+
+   #   geom_bar(stat="identity")
+  #})
+  #output$DefectiveComp <-renderPlot({
+   # ggplot(data = fehlerVehicle(),aes(x=Herstellernummer,y=rateComponents))+
+    #  geom_bar(stat="identity")
+  #})
+  #output$DefectiveParts <-renderPlot({
+   # ggplot(data = fehlerVehicle(),aes(x=Herstellernummer,y=rateParts))+
+    #  geom_bar(stat="identity")
+  #})
+  output$table <- renderTable(fehlerVehicle())
+  
+ df_pivoted <-reactive(pivot_longer(fehlerVehicle(),cols = c('rateVehicle','rateComponents','rateParts')))
+ output$pivot <- renderTable(df_pivoted())
+ 
+ output$DefectiveTotal <-renderPlotly({
+ ggplotly(ggplot(data=df_pivoted(),aes(x=Herstellernummer,y=value,fill=name))+
+  geom_bar(stat="identity",position = "dodge"))
+  })
+  
+    #summarize(n_fehlerhaft = sum(n_fehlerhaft), 
+     #           gesamtanzahl = sum(gesamtanzahl)) %>% 
+      #mutate(relativ = n_fehlerhaft * 100 / gesamtanzahl)
 }
 
 shinyApp(ui = ui, server = server)
 
+```
+
+```{r} 
+fehlerVehicle_test<-function(final_dataset){final_dataset%>%filter(Gemeinden %in% input$Gemeinden1 )%>%group_by(Herstellernummer)%>%filter(Zulassung >= input$daterange1[1] & Zulassung <=input$daterange1[2] )%>%summarize(TotalVehicle=sum(`Number of Vehicle`),TotalDefectiveVehicle=sum(`Defective Vehicle`),TotalComponents=sum(`Number of Components`),TotalDefectiveComponents=sum(`Defective Components`),TotalParts=sum(`Number of Parts`),TotalDefectiveParts=sum(`Defective Parts`))%>%mutate(rateVehicle=TotalDefectiveVehicle*100/TotalVehicle)%>%mutate(rateComponents=TotalDefectiveComponents*100/TotalComponents)%>%mutate(rateParts=TotalDefectiveParts*100/TotalParts)}
 ```
 
 
