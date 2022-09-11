@@ -206,7 +206,8 @@ server <- function(input,output,session){
       need(input$Gemeinden, "To render a plot please select a Gemeinde")
     )
     ggplotly(ggplot(data= subset4a(),aes(x=Zulassung ,y=`Number of Vehicle`,color = Gemeinden))+
-      geom_line())
+      geom_line()+
+        facet_grid(Herstellernummer~.))
   })
   #fehlter plot
   updateSelectInput(session,inputId = "Gemeinden1",choices=unique(final_dataset$Gemeinden),selected = "BOCHUM")
