@@ -72,12 +72,14 @@ oem1_weekly= oem1 %>%
   mutate(date_week = paste0(year(Zulassung),"-",isoweek(Zulassung)))%>%
   group_by(date_week, Herstellernummer) %>% 
   summarize(vehicles_sold = sum(vehicles_sold)) %>% 
-  mutate(type = "train") %>% inner_join(week_calender,by = "date_week")
+  mutate(type = "train") %>% 
+  inner_join(week_calender,by = "date_week")
 
 oem2_weekly = oem2 %>% mutate(date_week = paste0(year(Zulassung),"-",isoweek(Zulassung)))%>%
   group_by(date_week, Herstellernummer) %>% 
   summarize(vehicles_sold = sum(vehicles_sold)) %>% 
-  mutate(type = "train") %>% inner_join(week_calender,by = "date_week")
+  mutate(type = "train") %>% 
+  inner_join(week_calender,by = "date_week")
 
 # Create linear model for weekly modelling
 lmmodel1_weekly = lm(vehicles_sold ~ date, data = oem1_weekly)
@@ -85,18 +87,22 @@ lmmodel2_weekly = lm(vehicles_sold ~ date, data = oem2_weekly)
 
 
 # Summarize final data set by the number of sold vehicles for monthly modelling
-oem1_monthly = oem1 %>% mutate(date_month = paste0(year(Zulassung),"-",month(Zulassung))) %>%
+oem1_monthly = oem1 %>% 
+  mutate(date_month = paste0(year(Zulassung),"-",month(Zulassung))) %>%
   group_by(date_month, Herstellernummer) %>% 
   summarize(vehicles_sold = sum(vehicles_sold)) %>% 
   mutate(type = "train") %>% 
-  mutate(date_month = as.Date(paste0(date_month,"-","1"),"%Y-%m-%d")) %>% rename(date = date_month)
+  mutate(date_month = as.Date(paste0(date_month,"-","1"),"%Y-%m-%d")) %>% 
+  rename(date = date_month)
 
 
-oem2_monthly = oem2 %>% mutate(date_month = paste0(year(Zulassung),"-",month(Zulassung))) %>%
+oem2_monthly = oem2 %>% 
+  mutate(date_month = paste0(year(Zulassung),"-",month(Zulassung))) %>%
   group_by(date_month, Herstellernummer) %>% 
   summarize(vehicles_sold = sum(vehicles_sold)) %>% 
   mutate(type = "train") %>% 
-  mutate(date_month = as.Date(paste0(date_month,"-","1"),"%Y-%m-%d")) %>% rename(date = date_month)
+  mutate(date_month = as.Date(paste0(date_month,"-","1"),"%Y-%m-%d")) %>% 
+  rename(date = date_month)
 
 # Create linear model for monthly modelling
 lmmodel1_monthly = lm(vehicles_sold~date,data = oem1_monthly)
@@ -113,7 +119,9 @@ ui <- fluidPage(
   
   # App title
   titlePanel(div(column(width = 7, h2("IDA Study Case Group 07")),
-                 column(width = 1, tags$img(src = "qw_gross_trimmed.png", height = 70, width = 125))),
+                 column(width = 1, tags$img(src = "qw_gross_trimmed.png", 
+                                            height = 70, 
+                                            width = 125))),
              windowTitle="TitlePage"),
 
   # Main panel for displaying outputs
@@ -125,71 +133,86 @@ ui <- fluidPage(
                
       tabPanel("4.a Temporal Course",
                fluidRow(
+                 
                  sidebarLayout(
+                   
                    sidebarPanel(
                      selectInput("Gemeinden","Gemeinden: ",
                                  choices = unique(final_dataset$Gemeinden),
                                  selected = c("DORTMUND"),
                                  multiple = TRUE),
-                     dateRangeInput("daterange","Date range:",start = min(final_dataset$Zulassung),end=max(final_dataset$Zulassung),min = min(final_dataset$Zulassung),max=max(final_dataset$Zulassung))
-                   ),
+                     dateRangeInput("daterange","Date range:",
+                                    start = min(final_dataset$Zulassung),
+                                    end=max(final_dataset$Zulassung),
+                                    min = min(final_dataset$Zulassung),
+                                    max=max(final_dataset$Zulassung))),
+                   
                    mainPanel(
-                     plotlyOutput(outputId ="plot", width = "auto", height = "750px")
-                   ),
+                     plotlyOutput(outputId ="plot", width = "auto", height = "750px")),
+                   
                    position = "left")
                )
       ),
+      
       tabPanel("4.b Defective",
+               
                fluidRow(
+                 
                  sidebarLayout(
+                   
                    sidebarPanel(
+                     
                      selectInput("Gemeinden1","Gemeinden: ",c(""),multiple = TRUE),
-                     dateRangeInput("daterange1","Date range:",start = min(final_dataset$Zulassung),end=max(final_dataset$Zulassung),min = min(final_dataset$Zulassung),max=max(final_dataset$Zulassung))
-                   ),
+                     dateRangeInput("daterange1","Date range:",
+                                    start = min(final_dataset$Zulassung),
+                                    end=max(final_dataset$Zulassung),
+                                    min = min(final_dataset$Zulassung),
+                                    max=max(final_dataset$Zulassung))),
+                   
                    mainPanel(
-                     #plotOutput(outputId = "DefectiveVehicle"),
-                     #plotOutput(outputId = "DefectiveComp"),
-                     #plotOutput(outputId = "DefectiveParts"),
-                     plotlyOutput(outputId = "DefectiveTotal", width = "auto", height = "500px"),        
+
+                     plotlyOutput(outputId = "DefectiveTotal", 
+                                  width = "auto", 
+                                  height = "500px"),        
                      tableOutput('table'),
-                     tableOutput('pivot')
-                   ),
+                     tableOutput('pivot')),
+                   
                    position = "left")
                )
       ),
       
       tabPanel("4.c Forecast",
+               
                fluidRow(
+                 
                  sidebarLayout(
+                   
                    sidebarPanel(
+                     
                      radioButtons("date_selection","Select scale by: ",
-                                  choices = c("Daily","Weekly","Monthly","Arima")),
-                   ),
+                                  choices = c("Daily","Weekly","Monthly","Arima"))),
+                   
                    mainPanel(
-                     plotlyOutput(outputId ="regression_plot", width = "auto", height = "750px")
-                   ),
+                     plotlyOutput(outputId ="regression_plot", 
+                                  width = "auto", 
+                                  height = "750px")),
+                   
                    position = "left")
                )
       ),
+      
       tabPanel("4.d View",
                fluidRow(
                  dataTableOutput(outputId = "view")),
+               )
       )
-      
-      )
-  )
+    )
 
 )
 
 # Server
 server <- function(input,output,session){
 
-  # Generate a summary of the dataset ----
-  output$summary <- renderPrint({
-    dataset <- final_dataset
-    summary(dataset)
-  })
-  
   # Show the first "n" observations ----
   output$view <- renderDataTable({
     final_dataset
