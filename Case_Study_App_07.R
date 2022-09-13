@@ -1,71 +1,73 @@
-#Sichern, dass StringsAsFactors gleich FALSE
+# Case Study Shiny App Group 07, Summer Semester 2022
+# Submitted by: 
+  # Rhesa Edrick Tendean
+  # Domenica Ginnette Ruales Cevallos
+  # Oleksandr Soboliev
+
+
+# Make sure, that StringsAsFactors = FALSE
 options(stringsAsFactors = F)
 
-# Überprüfen, ob die Packages bereits installiert sin
-if(!require(readr)){
-  # wenn es nicht installiert ist, wird es nun installiert
-  install.packages("readr", dependencies = TRUE)
-  library(readr)
+# Libraries
+if(!require(install.load)){
+  install.packages("install.load")
+  library(install.load)
 }
 
+install_load("tidyverse", "plotly", "shiny", "modelr", "lubridate", "forecast")
 
-if(!require("tidyverse")){
-  install.packages("tidyverse")
-  library(tidyverse)
-}
-
-if(!require("plotly")){
-  install.packages("plotly")
-  library(plotly)
+if ("fitdistrplus" %in% (.packages())){
+  detach(package: fitdistrplus, unload = TRUE)
 }
 
-if(!require("shiny")){
-  install.packages("shiny")
-  library(shiny)
-}
-if(!require("modelr")){
-  install.packages("modelr")
-  library(modelr)
+if ("fitdistrplus" %in% (.packages())){
+  detach(package: MASS, unload = TRUE)
 }
 
-# HEAD
-if(!require("lubridate")){
-  install.packages("lubridate")
-  library(lubridate)
+if ("fitdistrplus" %in% (.packages())){
+  detach(package: stats, unload = TRUE)
 }
-if(!require("shinythemes")){
-  install.packages("shinythemes")
-  library(shinythemes)
-}
-if(!require("forecast")){
-  install.packages("forecast")
-  library(forecast)
-}
+
+# Import final dataset from submission folder
 
 final_dataset <- read_delim("Final_dataset_group_07.csv",delim = ",")
 
 
-# Data used for modelling
+# Filter data used for modelling
 
-oem1 = final_dataset %>% filter(Herstellernummer == 1) %>% rename(vehicles_sold = 'Number of Vehicle')
-oem2 = final_dataset %>% filter(Herstellernummer == 2) %>% rename(vehicles_sold = 'Number of Vehicle')
+oem1 = final_dataset %>% 
+  filter(Herstellernummer == 1) %>% 
+  rename(vehicles_sold = 'Number of Vehicle')
+
+oem2 = final_dataset %>% 
+  filter(Herstellernummer == 2) %>% 
+  rename(vehicles_sold = 'Number of Vehicle')
 
 
-#Daily modelling
-oem1_daily = oem1 %>% group_by(Zulassung, Herstellernummer) %>% summarize(vehicles_sold = sum(vehicles_sold)) %>% mutate(type = "train") %>%
+# Summarize final data set by the number of sold vehicles for daily modelling
+oem1_daily = oem1 %>% 
+  group_by(Zulassung, Herstellernummer) %>% 
+  summarize(vehicles_sold = sum(vehicles_sold)) %>% 
+  mutate(type = "train") %>%
   rename(date = Zulassung)
-oem2_daily = oem2 %>% group_by(Zulassung, Herstellernummer) %>% summarize(vehicles_sold = sum(vehicles_sold)) %>% mutate(type = "train")%>%
+
+oem2_daily = oem2 %>% 
+  group_by(Zulassung, Herstellernummer) %>% 
+  summarize(vehicles_sold = sum(vehicles_sold)) %>% 
+  mutate(type = "train")%>%
   rename(date = Zulassung)
 
+# Create linear model for daily modelling
 lmmodel1_daily = lm(vehicles_sold ~ date, data = oem1_daily)
 lmmodel2_daily = lm(vehicles_sold ~ date, data = oem2_daily)
 
-#For weeks we use week calender to find Date that represent week (we take 1 week)
+# Create a list of relevant weeks with each a date to respresent the corresponding week.
+# Friday is chosen to represent each week
 week_calender = as.Date(seq(ISOdate(2014,1,3),ISOdate(2016,12,31),by="week"))
 week_calender = data.frame(date = week_calender)
 week_calender = week_calender %>% mutate(date_week = paste0(year(date),"-",isoweek(date)))
 
-#Weekly modelling
+# Summarize final data set by the number of sold vehicles for weekly modelling
 oem1_weekly= oem1 %>% 
   mutate(date_week = paste0(year(Zulassung),"-",isoweek(Zulassung)))%>%
   group_by(date_week, Herstellernummer) %>% 
@@ -77,12 +79,12 @@ oem2_weekly = oem2 %>% mutate(date_week = paste0(year(Zulassung),"-",isoweek(Zul
   summarize(vehicles_sold = sum(vehicles_sold)) %>% 
   mutate(type = "train") %>% inner_join(week_calender,by = "date_week")
 
-
+# Create linear model for weekly modelling
 lmmodel1_weekly = lm(vehicles_sold ~ date, data = oem1_weekly)
 lmmodel2_weekly = lm(vehicles_sold ~ date, data = oem2_weekly)
 
 
-#Monthly modelling
+# Summarize final data set by the number of sold vehicles for monthly modelling
 oem1_monthly = oem1 %>% mutate(date_month = paste0(year(Zulassung),"-",month(Zulassung))) %>%
   group_by(date_month, Herstellernummer) %>% 
   summarize(vehicles_sold = sum(vehicles_sold)) %>% 
@@ -96,24 +98,25 @@ oem2_monthly = oem2 %>% mutate(date_month = paste0(year(Zulassung),"-",month(Zul
   mutate(type = "train") %>% 
   mutate(date_month = as.Date(paste0(date_month,"-","1"),"%Y-%m-%d")) %>% rename(date = date_month)
 
+# Create linear model for monthly modelling
 lmmodel1_monthly = lm(vehicles_sold~date,data = oem1_monthly)
 lmmodel2_monthly = lm(vehicles_sold ~ date,data = oem2_monthly)
 
 
-
+# UI Page
 ui <- fluidPage(
-  #theme = shinytheme("cosmo"),
-  
+
   #Styling with css
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
   ),
-  # App title ----
+  
+  # App title
   titlePanel(div(column(width = 7, h2("IDA Study Case Group 07")),
                  column(width = 1, tags$img(src = "qw_gross_trimmed.png", height = 70, width = 125))),
              windowTitle="TitlePage"),
 
-  # Main panel for displaying outputs ----
+  # Main panel for displaying outputs
   mainPanel(
     
     tabsetPanel(
@@ -178,16 +181,9 @@ ui <- fluidPage(
 
 )
 
-
+# Server
 server <- function(input,output,session){
-  # Return the requested dataset ----
-  # datasetInput <- reactive({
-  #   switch(input$dataset,
-  #          "rock" = rock,
-  #          "pressure" = pressure,
-  #          "cars" = cars)
-  # })
-  
+
   # Generate a summary of the dataset ----
   output$summary <- renderPrint({
     dataset <- final_dataset
