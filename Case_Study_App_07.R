@@ -61,7 +61,7 @@ lmmodel1_daily = lm(vehicles_sold ~ date, data = oem1_daily)
 lmmodel2_daily = lm(vehicles_sold ~ date, data = oem2_daily)
 
 #For weeks we use week calender to find Date that represent week (we take 1 week)
-week_calender = as.Date(seq(ISOdate(2014,1,1),ISOdate(2016,12,31),by="week"))
+week_calender = as.Date(seq(ISOdate(2014,1,3),ISOdate(2016,12,31),by="week"))
 week_calender = data.frame(date = week_calender)
 week_calender = week_calender %>% mutate(date_week = paste0(year(date),"-",isoweek(date)))
 
@@ -131,7 +131,7 @@ ui <- fluidPage(
                      dateRangeInput("daterange","Date range:",start = min(final_dataset$Zulassung),end=max(final_dataset$Zulassung),min = min(final_dataset$Zulassung),max=max(final_dataset$Zulassung))
                    ),
                    mainPanel(
-                     plotlyOutput(outputId ="plot", width = "auto", height = "1000px")
+                     plotlyOutput(outputId ="plot", width = "auto", height = "750px")
                    ),
                    position = "left")
                )
