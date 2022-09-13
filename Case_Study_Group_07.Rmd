@@ -12,11 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 A large car dealership is about to open a new branch in Dortmund. We are tasked to select the choice of cars between OEM1 and OEM2. The goal of this new car dealership selection is to increase the sales figure after a long period of low sales. For this, our team needs to analyze the registrations of the last three years from 2014 until 2016. In this selection, neighboring towns of Bochum Gelsenkirchen, Hilden and Nordkirchen should be considered. Important criterias for this selection are sales figures and susceptibility to errors.
 
-In this study case, the first task would be to analyze the temporal course of sales figures for both brands in Dortmund, Bochum, Gelsenkirchen, Hilden and Nordkirchen. Secondly, we are tasked to create a figure to visualize the relative proportion of defective registered vehicles of the respective brand. Besides that, the user should also be able to recognize the relative proportion of defective component and parts. For both tasks, filtering by location and time period of registration should be possible. Afterwards, a sales forecast is required to show the development of sales figures for both brands for the next quarter which is Q1 2017. Based on this, the team must recommend the most suitable car brand.
+In this study case, our first task is to analyze the temporal course of sales figures for both brands in Dortmund, Bochum, Gelsenkirchen, Hilden and Nordkirchen. For the second task, we must create a figure to visualize the relative proportion of defective registered vehicles of the respective brand. Besides that, the user should also be able to recognize the relative proportion of defective component and parts. For both tasks, filtering by location and time period of registration should be possible. Afterwards, a sales forecast is required to show the development of sales figures for both brands for the next quarter which is Q1 2017. Based on this, the team must recommend the most suitable car brand.
 
 ## Libraries
 
-At first, we need to install and load the package `install.load` to ease the loading process of relevant packages, that are used in this study case. Relevant packages are `tidyverse`, `lubridate`, `plotly`, `shiny`, `leaflet` and `data.table`. Besides that, `fitdistrplus`, `MASS` and `stats` must be unloaded due to interference with some functions from `dplyr`.
+At first, we need to install and load the package `install.load` to ease the loading process of relevant packages, that are used in this study case. Relevant packages are `tidyverse` and `data.table`. Besides that, `fitdistrplus`, `MASS` and `stats` must be unloaded due to interference with some functions from `dplyr`.
 
 ```{r message = FALSE, warning = FALSE}
 if(!require(install.load)){
@@ -44,7 +44,7 @@ detach(package: stats, unload = TRUE)
 ```
 
 ## 0. Functions
-Some datasets consist columns, that are repeated twice. To ease the process of data preparation, this columns should be merged. Following function is implemented:
+Some data sets consist of columns, that are repeated twice. To ease the process of data preparation, this columns should be merged. To do this, following function is implemented:
 ```{r message = FALSE, warning = FALSE}
 merge_xy <- function(data) {
   data_x <- data[,1:2] %>% na.omit(1) %>% rename(V1 = 1, V2 = 2)
@@ -54,7 +54,7 @@ merge_xy <- function(data) {
 }
 ```
 
-Some datasets consist columns, that are repeated three times To ease the process of data preparation, this columns should be merged. Following function is implemented:
+Some data sets consist of columns, that are repeated three times To ease the process of data preparation, this columns should be merged. To do this, following function is implemented:
 ```{r message = FALSE, warning = FALSE}
 merge_xyz <- function(data) {
   data_x <- data[,1:2] %>% na.omit(1) %>% rename(V1 = 1, V2 = 2)
@@ -65,11 +65,11 @@ merge_xyz <- function(data) {
 }
 ```
 
-The part list datasets (Bestandteile Komponente) contain either 3, 4, or 5 different parts. To merge all datasets into one single dataset, the datasets with only 3 and 4 different parts need to be reformated to accomodate the number of columns inside dataset with 5 parts. These extra colums are filled with `NA`.
+The part list datasets (Bestandteile Komponente) contain either 3, 4, or 5 different parts. To merge all data sets into one single data set, the datasets with only 3 and 4 different parts need to be reformated to accomodate the number of columns inside dataset with 5 parts. These extra colums are filled with `NA`.
 
 Following function is intended to reformat part list datasets (Bestandteile Komponente) with 4 different part to accomodate datasets with 5 parts.
 ```{r message = FALSE, warning = FALSE}
-reformat_5 <- function(data) {
+reformat_5cols <- function(data) {
   data <- data %>% 
     mutate(ID_T_5 = NA) %>% 
     select(5, 1:4, 6) %>% 
@@ -79,7 +79,7 @@ reformat_5 <- function(data) {
 
 Following function is intended to reformat part list datasets (Bestandteile Komponente) with 3 different part to accomodate datasets with 5 parts.
 ```{r message = FALSE, warning = FALSE}
-reformat_4 <- function(data) {
+reformat_4cols <- function(data) {
   data <- data %>% 
     mutate(ID_T_4 = NA, ID_T_5 = NA) %>% 
     select(4, 1:3, 5:6) %>% 
@@ -90,15 +90,14 @@ reformat_4 <- function(data) {
 ## 1. Import all relevant datasets
 ### Importing vehicle dataset, component list, and registeration
 
-As explained above, the task of this study case is to analyze the number of registered vehicles from OEM1 and OEM2 within the aforementioned time frame and location and to analyze the number of their defectives on vehicle, component and single part level. The main task for importing is to extract the car id number, registration date, location, number of defective vehicles, number of defective components and number of defective single parts from the provided data.
+As explained above, the task of this study case is to analyze the number of registered vehicles from OEM1 and OEM2 within the above mentioned time frame and location and to analyze the number of their defectives on vehicle, component and single part level. The main task for importing is to extract the relevant vehicle id numbers, their registration date, location of registration, the number of defective vehicles, the number of defective components and the number of defective single parts from the provided data.
 
 The first step towards this analysis is to import the list of registered vehicles from `Zulassungen_alle_Fahrzeuge.csv` dataset. First column which contains number of lines is removed to reduce the size of the data.
 ```{r message = FALSE, warning = FALSE}
 zulassungen <- fread("Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv") %>% select(-1)
-
 ```
 
-To determine which type of vehicle from OEM1 and 2, following code is implemented.
+To determine which type of vehicle from OEM 1 and OEM 2, that are relevant for this analysis, following code is implemented.
 ```{r}
 unique(substr(zulassungen$IDNummer, 1,4))
 ```
@@ -116,17 +115,20 @@ To determine which component datasets are needed, we need to import component li
 ```{r message = FALSE, warning = FALSE}
 bestandteile_fahrzeuge_oem1_typ11 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ11.csv", header = TRUE) %>% 
   select(6, 2:5)
+
 bestandteile_fahrzeuge_oem1_typ12 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv", header = TRUE) %>% 
   select(6, 2:5)
+
 bestandteile_fahrzeuge_oem2_typ21 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv", header = TRUE) %>% 
   select(6, 2:5)
+
 bestandteile_fahrzeuge_oem2_typ22 <- fread("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv", header = TRUE) %>% 
   select(6, 2:5)
 ```
 
 ### Joining vehicle and component list of vehicles datasets
 
-Vehicle datasets (Fahrzeuge) are joined into one single dataset:
+Vehicle data sets (Fahrzeuge) are then joined into one single dataset. The single data sets are removed afterwards to save memory.
 
 ```{r message = FALSE, warning = FALSE}
 fahrzeuge_all <- rbind(fahrzeuge_oem1_typ11,
@@ -140,7 +142,7 @@ rm(fahrzeuge_oem1_typ11,
    fahrzeuge_oem2_typ22)
 ```
 
-Component lists of vehicles (Bestandteile Fahrzeuge) are joined into one single data:
+Component lists of vehicles (Bestandteile Fahrzeuge) are joined into one single data. The single data sets are then removed to save memory.
 ```{r message = FALSE, warning = FALSE}
 bestandteile_fahrzeuge_all <- rbind(bestandteile_fahrzeuge_oem1_typ11,
                                     bestandteile_fahrzeuge_oem1_typ12,
@@ -155,7 +157,7 @@ rm(bestandteile_fahrzeuge_oem1_typ11,
 
 ### Filtering registration by date and location
 
-Vehicle registration is filtered for the year 2014 - 2016 and following location: Dortmund, Bochum, Gelsenkirchen, Hilden and Nordkirchen.
+The data set of vehicle registration is filtered by year 2014 - 2016 and by following location: Dortmund, Bochum, Gelsenkirchen, Hilden and Nordkirchen.
 
 ```{r message = FALSE, warning = FALSE}
 zulassungen_filter <- zulassungen %>% 
@@ -166,7 +168,7 @@ zulassungen_filter <- zulassungen %>%
 
 
 ### Joining filtered registration, vehicle and component list
-This filtered registration data would then be joined with the combined vehicle and component dataset with `left_join()` function with `IDNummer` and `ID_Fahrzeug` column as matching criteria.
+This filtered registration data would then be joined with the combined vehicle and component dataset with `left_join()` function with `IDNummer` and `ID_Fahrzeug` column as matching criteria. All previous data sets would then be removed to save memory.
 
 ```{r message = FALSE, warning = FALSE}
 zulassungen_componentList <- zulassungen_filter %>% 
@@ -178,8 +180,8 @@ rm(fahrzeuge_all, zulassungen, zulassungen_filter, bestandteile_fahrzeuge_all)
 ```
 
 ### Finding relevant component dataset
-The following code is used to find the relevant components for this study case.
-```{r message = FALSE, warning = FALSE}
+Before importing the component data sets, it is important to know which components are relevent. The following code is used to find the relevant components for this study case.
+```{r}
 unique(substr(zulassungen_componentList$ID_Karosserie, 1,2))
 unique(substr(zulassungen_componentList$ID_Schaltung, 1,5))
 unique(substr(zulassungen_componentList$ID_Sitze, 1,5))
@@ -187,7 +189,9 @@ unique(substr(zulassungen_componentList$ID_Motor, 1,5))
 ```
 Based on this result, all components are required to be imported. The next step is to determine, which single part datasets are required.
 
-### Creating a list of all relevant components
+### Creating lists of all relevant components based on the component type
+
+To ease the filtering process of component data sets after importing, we summarized all relevant components in a list.
 ```{r message = FALSE, warning = FALSE}
 karosserie <- select(zulassungen_componentList, ID_Karosserie)
 schaltung <- select(zulassungen_componentList, ID_Schaltung)
@@ -200,7 +204,7 @@ rm(karosserie, schaltung, sitze, motor)
 
 
 ### Importing single part list datasets
-Function `fread()` with header-value set to `TRUE` is used for importing the all single part list datasets (Bestandteile Komponente). The first column is removed to simplify the dataset.
+Function `fread()` with header-value set to `TRUE` is used for importing the all single part list data sets (Bestandteile Komponente). The first column is removed to simplify the data set. Afterwards, the imported data sets are filtered with `semi_join()` function by the relevant components only to save memory.
 ```{r message = FALSE, warning = FALSE}
 # Component List of Motor
 bestandteile_komponente_k1be1 <- fread("Data/Komponente/Bestandteile_Komponente_K1BE1.csv", header = TRUE) %>% 
@@ -273,28 +277,27 @@ bestandteile_komponente_k7 <- fread("Data/Komponente/Bestandteile_Komponente_K7.
 ```
 
 ### Joining single part lists into a single dataset
-All lists of single parts inside component (Bestandteile Komponente) are joined into one single data. One component has 5 single parts, the others come with either 3 or 4 single parts. To join these together into one single dataset, extra 1 or 2 columns with NA value must be added to each component list dataset.
+All lists of single parts inside component (Bestandteile Komponente) are joined into one single data. One component has 5 single parts, the others come with either 3 or 4 single parts. To join these together into one single dataset, extra 1 or 2 columns with NA value must be added to each component list dataset. To to this, the function `reformat_5cols()` and `reformat_4cols()` are used. Afterwards, these data sets are combined in a single one and removed from workspace to save memory.
 
 ```{r message = FALSE, warning = FALSE}
+bestandteile_komponente_k1be1 <-  reformat_5cols(bestandteile_komponente_k1be1)
+bestandteile_komponente_k1be2 <-  reformat_5cols(bestandteile_komponente_k1be2)
+bestandteile_komponente_k1di1 <- reformat_5cols(bestandteile_komponente_k1di1)
+bestandteile_komponente_k1di2 <- reformat_5cols(bestandteile_komponente_k1di2)
 
-bestandteile_komponente_k1be1 <-  reformat_5(bestandteile_komponente_k1be1)
-bestandteile_komponente_k1be2 <-  reformat_5(bestandteile_komponente_k1be2)
-bestandteile_komponente_k1di1 <- reformat_5(bestandteile_komponente_k1di1)
-bestandteile_komponente_k1di2 <- reformat_5(bestandteile_komponente_k1di2)
+bestandteile_komponente_k2le1 <- reformat_4cols(bestandteile_komponente_k2le1)
+bestandteile_komponente_k2le2 <- reformat_4cols(bestandteile_komponente_k2le2)
+bestandteile_komponente_k2st1 <- reformat_4cols(bestandteile_komponente_k2st1)
+bestandteile_komponente_k2st2 <- reformat_4cols(bestandteile_komponente_k2st2)
 
-bestandteile_komponente_k2le1 <- reformat_4(bestandteile_komponente_k2le1)
-bestandteile_komponente_k2le2 <- reformat_4(bestandteile_komponente_k2le2)
-bestandteile_komponente_k2st1 <- reformat_4(bestandteile_komponente_k2st1)
-bestandteile_komponente_k2st2 <- reformat_4(bestandteile_komponente_k2st2)
+bestandteile_komponente_k3ag1 <- reformat_4cols(bestandteile_komponente_k3ag1)
+bestandteile_komponente_k3ag2 <- reformat_4cols(bestandteile_komponente_k3ag2)
+bestandteile_komponente_k3sg1 <- reformat_4cols(bestandteile_komponente_k3sg1)
+bestandteile_komponente_k3sg2 <- reformat_4cols(bestandteile_komponente_k3sg2)
 
-bestandteile_komponente_k3ag1 <- reformat_4(bestandteile_komponente_k3ag1)
-bestandteile_komponente_k3ag2 <- reformat_4(bestandteile_komponente_k3ag2)
-bestandteile_komponente_k3sg1 <- reformat_4(bestandteile_komponente_k3sg1)
-bestandteile_komponente_k3sg2 <- reformat_4(bestandteile_komponente_k3sg2)
-
-bestandteile_komponente_k4 <- reformat_4(bestandteile_komponente_k4)
-bestandteile_komponente_k5 <- reformat_4(bestandteile_komponente_k5)
-bestandteile_komponente_k6 <- reformat_5(bestandteile_komponente_k6)
+bestandteile_komponente_k4 <- reformat_4cols(bestandteile_komponente_k4)
+bestandteile_komponente_k5 <- reformat_4cols(bestandteile_komponente_k5)
+bestandteile_komponente_k6 <- reformat_5cols(bestandteile_komponente_k6)
 bestandteile_komponente_k7 <- bestandteile_komponente_k7 %>% select(6, 1:5)
 
 bestandteile_komponente_all <- rbind(bestandteile_komponente_k1be1, bestandteile_komponente_k1be2,
@@ -318,7 +321,7 @@ rm(bestandteile_komponente_k1be1, bestandteile_komponente_k1be2,
 ```
 
 ### Joining filtered registration with whole single part list dataset
-This filtered registration data would then be joined with the combined single part list dataset with `left_join()` function with `ID_K` paired with `ID_Karosserie`, `ID_Schaltung`, `ID_Sitze` and `ID_Motor` column as matching criteria. Each part id column is then renamed accordingly.The column `ID_Schaltung_T_4`, `ID_Schaltung_T_5`, `ID_Sitze_T_4` and `ID_Sitze_T_5` are removed since all transmission and seats have only 3 components. The column`ID_Motor_T_5` is removed since all motor have only 4 components.
+The filtered registration data `zulassungen_componentList` is joined with the combined single part list `bestandteile_komponente_all` data set with `left_join()` function with `ID_K` paired with `ID_Karosserie`, `ID_Schaltung`, `ID_Sitze` and `ID_Motor` column as matching criteria. Each part id column is then renamed accordingly.The column `ID_Schaltung_T_4`, `ID_Schaltung_T_5`, `ID_Sitze_T_4` and `ID_Sitze_T_5` are removed since all transmission and seats have only 3 components. The column`ID_Motor_T_5` is removed since all motor have only 4 components. The data set `zulassungen_componentList` and `bestandteile_komponente_all` are then removed to free up memory.
 
 ```{r message = FALSE, warning = FALSE}
 zulassungen_partList <- zulassungen_componentList %>% 
@@ -357,10 +360,10 @@ c(unique(substr(zulassungen_partList$ID_Karosserie_T_1, 1,2)), unique(substr(zul
   na.omit() %>% 
   sort()
 ```
-Based on the result above, all single part datasets are required for this study case.
-
+Based on the result above, all single part datasets are required for this study case hence they must be imported.
 
 ### Creating a list of all relevant parts
+To ease the filtering process of single part data sets after importing, we summarized all relevant parts in a list.
 ```{r message = FALSE, warning = FALSE}
 t01 <- select(zulassungen_partList, 10)
 t02 <- select(zulassungen_partList, 11)
@@ -390,10 +393,11 @@ rm(t01, t02, t03, t04, t05,
 
 
 ### Importing all component
-During the importing of all component datasets, only the `ID` and `Fehlerhaft` column are relevant. The datasets are imported as follow.
+During the importing of all component data sets, only the `ID` and `Fehlerhaft` column are relevant. The datasets are imported as follow.
 
 #### Importing component K1xx (Motor)
-Components are imported by using `fread` function of `data.table` package. For component K1BE1 and K1BE2, column 3 and 6 are selected. Since the dataset of component K1DI1 is structured with columns, that are repeated three times, column 3, 7, 10, 14, 17, and 21 are selected. By applying the function `merge_xyz()`, these columns could be merged into two relevant columns. To import component K1DI2, the original data needs to be read and some strings must be modified, so that the data could be imported as columns.
+Components are imported by using `fread` function of `data.table` package. For component K1BE1 and K1BE2, column 3 and 6 are selected. Since the dataset of component K1DI1 is structured with columns, that are repeated three times, column 3, 7, 10, 14, 17, and 21 are selected. By applying the function `merge_xyz()`, these columns could be merged into two relevant columns. To import component K1DI2, the original data needs to be read and some strings must be modified, so that the data could be imported as columns. After the importing process, the data is filtered with the function `semi_join()` with the data set `componentList`.
+
 ```{r message = FALSE, warning = FALSE}
 komponente_k1be1 <- fread("Data/Komponente/Komponente_K1BE1.csv") %>% select(3,6) %>% 
   semi_join(componentList, by = c("ID_Motor" = "ID_K"))
@@ -459,7 +463,6 @@ komponente_k3sg2 <- fread("Data/Komponente/Komponente_K3SG2.csv") %>% select(3,6
 
 #### Importing component K4 - K7 (Karosserie)
 ```{r message = FALSE, warning = FALSE}
-# Karosserie Dataset
 komponente_k4 <- fread("Data/Komponente/Komponente_K4.csv") %>% 
   select(3, 7, 10, 14) %>% 
   merge_xy() %>% 
@@ -479,10 +482,9 @@ komponente_k7 <- fread("Data/Komponente/Komponente_K7.txt") %>% select(3,6) %>%
   semi_join(componentList, by = c("ID_Karosserie" = "ID_K"))
 ```
 
-### Importing all single components
-
+### Importing all single parts
+The workflow to import single parts is simillar to the workflow to import components. After importing, the parts are then filtered with the data set `partList` by using `semi_join()` function, so that they contain only relevant information.
 ```{r message = FALSE, warning = FALSE}
-# Single component dataset
 einzelteil_t01 <- read_file("Data/Einzelteil/Einzelteil_T01.txt") %>% 
   str_replace_all(" \\| \\| ", ";") %>%
   str_replace_all(" ", "\n") %>% 
@@ -700,13 +702,12 @@ einzelteil_t39 <- read_file("Data/Einzelteil/Einzelteil_T39.txt") %>%
 
 einzelteil_t40 <- fread("Data/Einzelteil/Einzelteil_T40.csv") %>% select(3,6) %>% 
   semi_join(partList, by = c("ID_T40" = "ID_T"))
-
-
 ```
 
 ## 2. Data preparation
 
 ### Joining all components into a single dataset
+The data set of all components are combined into a single data set by using `rbind()` function and removed afterwards.
 ```{r message = FALSE, warning = FALSE}
 komponente_all <- rbind(komponente_k1be1, komponente_k1be2, komponente_k1di1, komponente_k1di2,
                         komponente_k2le1, komponente_k2le2, komponente_k2st1, komponente_k2st2,
@@ -724,6 +725,7 @@ rm(komponente_k1be1, komponente_k1be2, komponente_k1di1, komponente_k1di2,
 
 
 ### Joining all single parts into one single data:
+The data set of all parts are combined into a single data set by using `rbind()` function and removed afterwards.
 ```{r message = FALSE, warning = FALSE}
 einzelteile_all <- rbind(einzelteil_t01,einzelteil_t02,einzelteil_t03,einzelteil_t04,einzelteil_t05,
                         einzelteil_t06,einzelteil_t07,einzelteil_t08,einzelteil_t09,einzelteil_t10,
@@ -750,7 +752,7 @@ rm(einzelteil_t01,einzelteil_t02,einzelteil_t03,einzelteil_t04,einzelteil_t05,
 ## 3. Creation of final data set
 
 ### Joining combined vehicle registeration with whole component and single part dataset
-
+To create the final data set, the data set containing vehicle registeration, components and single parts id `zulassungen_partList` is combined with the list of all relevant components `komponente_all` and single parts `einzelteile_all` to gain information regarding defectiveness. They would afterwards be removed from workspace.
 ```{r message = FALSE, warning = FALSE}
 zulassungen_part <- zulassungen_partList %>% 
   left_join(komponente_all, by = c("ID_Karosserie" = "ID_K")) %>% 
@@ -797,6 +799,7 @@ rm(einzelteile_all, komponente_all, zulassungen_partList)
 ```
 
 ### Counting number of defective components and single parts
+To get the number of defective components and parts, relevant rows are summed as follow:
 ```{r message = FALSE, warning = FALSE}
 zulassungen_final <- zulassungen_part %>% 
   rowwise() %>% 

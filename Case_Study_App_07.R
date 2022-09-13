@@ -137,7 +137,7 @@ ui <- fluidPage(
                  sidebarLayout(
                    
                    sidebarPanel(
-                     selectInput("Gemeinden","Gemeinden: ",
+                     selectInput("Gemeinden","Location: ",
                                  choices = unique(final_dataset$Gemeinden),
                                  multiple = TRUE),
                      dateRangeInput("daterange","Date range:",
@@ -161,7 +161,7 @@ ui <- fluidPage(
                    
                    sidebarPanel(
                      
-                     selectInput("Gemeinden1","Gemeinden: ",c(""),multiple = TRUE),
+                     selectInput("Gemeinden1","Location: ",c(""),multiple = TRUE),
                      dateRangeInput("daterange1","Date range:",
                                     start = min(final_dataset$Zulassung),
                                     end=max(final_dataset$Zulassung),
@@ -360,9 +360,8 @@ server <- function(input,output,session){
     ggplotly(ggplot(data = daily_result)+
       geom_point(aes(x = date,y = vehicles_sold,color = type),alpha = 0.5)+
       geom_vline(aes(xintercept = as.numeric(as.Date(ISOdate(2017,1,1)))))+
-      facet_grid(Herstellernummer~.,,labeller = labeller(Herstellernummer = 
-                                                           c("1" = "OEM 1",
-                                                             "2" = "OEM 2")))+
+      facet_grid(Herstellernummer~.,,
+                 labeller = labeller(Herstellernummer = c("1" = "OEM 1", "2" = "OEM 2")))+
       ggtitle(paste0("Linear regression for OEM1 and OEM2 based on ", input$date_selection ," basis")))
   })
 }
