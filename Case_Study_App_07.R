@@ -139,7 +139,6 @@ ui <- fluidPage(
                    sidebarPanel(
                      selectInput("Gemeinden","Gemeinden: ",
                                  choices = unique(final_dataset$Gemeinden),
-                                 selected = c("DORTMUND"),
                                  multiple = TRUE),
                      dateRangeInput("daterange","Date range:",
                                     start = min(final_dataset$Zulassung),
@@ -212,29 +211,37 @@ ui <- fluidPage(
 
 # Server
 server <- function(input,output,session){
-
-  # Show the first "n" observations ----
+  
+  updateSelectInput(session,
+                    inputId = "Gemeinden",
+                    choices=unique(final_dataset$Gemeinden),
+                    selected = "DORTMUND")
+  
+  # Show the first "n" observations
   output$view <- renderDataTable({
     final_dataset
   })
   
-  updateSelectInput(session,inputId = "Gemeinden",choices=unique(final_dataset$Gemeinden),selected = "BOCHUM")
   
-  #plot function 
-  subset4a<<-reactive(final_dataset%>%filter(Gemeinden %in% input$Gemeinden )%>%filter(Zulassung >= input$daterange[1] & Zulassung <=input$daterange[2] ))
+  #4.a Temporal course plot function 
+  subset4a<<-reactive(final_dataset%>%
+                        filter(Gemeinden %in% input$Gemeinden )%>%
+                        filter(Zulassung >= input$daterange[1] & Zulassung <=input$daterange[2] ))
+  
   output$plot <-renderPlotly({
-    #final_dataset%>%group_by(Gemeiden)%>%summarise(total_sell = sum(`Number of Vehicle`))
     validate(
       need(input$Gemeinden, "To render a plot please select a Gemeinde")
     )
-    ggplotly(ggplot(data= subset4a(),aes(x=Zulassung ,y=`Number of Vehicle`,color = Gemeinden))+
-      geom_line()+
-        facet_grid(Herstellernummer~.,labeller = labeller(Herstellernummer = 
-                                                            c("1" = "OEM 1",
-                                                              "2" = "OEM 2")))+
-        ggtitle("Sales Course"))
+    ggplotly(ggplot(data= subset4a(),aes(x=Zulassung,
+                                         y=`Number of Vehicle`,
+                                         color = Gemeinden)) +
+               geom_line() +
+               facet_grid(Herstellernummer~.,
+                          labeller = labeller(Herstellernummer = c("1" = "OEM 1", "2" = "OEM 2"))) +
+               ggtitle("Sales Course"))
   })
-  #fehlter plot
+  
+  # 4.b Rate of defective vehicle plot
   updateSelectInput(session,inputId = "Gemeinden1",choices=unique(final_dataset$Gemeinden),selected = "BOCHUM")
   fehlerVehicle<<-reactive(final_dataset%>%filter(Gemeinden %in% input$Gemeinden1 )%>%group_by(Herstellernummer)%>%filter(Zulassung >= input$daterange1[1] & Zulassung <=input$daterange1[2] )%>%summarize(TotalVehicle=sum(`Number of Vehicle`),TotalDefectiveVehicle=sum(`Defective Vehicle`),TotalComponents=sum(`Number of Components`),TotalDefectiveComponents=sum(`Defective Components`),TotalParts=sum(`Number of Parts`),TotalDefectiveParts=sum(`Defective Parts`))%>%mutate(rateVehicle=TotalDefectiveVehicle*100/TotalVehicle)%>%mutate(rateComponents=TotalDefectiveComponents*100/TotalComponents)%>%mutate(rateParts=TotalDefectiveParts*100/TotalParts))
   
