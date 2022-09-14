@@ -267,13 +267,22 @@ server <- function(input,output,session){
                                      cols = c('rateVehicle','rateComponents','rateParts')))
   output$pivot <- renderTable(df_pivoted())
   
+  
+  
   output$DefectiveTotal <-renderPlotly({
     validate(
       need(input$Gemeinden1, "To render a plot please select a Gemeinde")
     )
-    ggplotly(ggplot(data=df_pivoted(),aes(x=Herstellernummer,y=value,fill=name))+
+    ggplotly(ggplot(data=df_pivoted(),aes(x=factor(Herstellernummer),y=value,fill=name))+
                geom_bar(stat="identity",position = "dodge")+
-               ggtitle("Defective"))
+               ggtitle("Relative proportion of defective vehicles")+
+               xlab("OEM")+
+               ylab("Value in %")+
+               scale_fill_manual(name="Level of defective",
+                                   breaks=c("rateComponents", "rateParts", "rateVehicle"),
+                                   values = c("rateComponents"="red", "rateVehicle"="blue","rateParts"="green"),
+                                   labels=c("Component","Part","Vehicle" )))
+
   })
   
   output$regression_plot<- renderPlotly({
@@ -283,6 +292,7 @@ server <- function(input,output,session){
       lmmodel2 = lmmodel2_daily
       oem1_data = oem1_daily
       oem2_data = oem2_daily
+      by_smth = "day"
       
       
     }else if(input$date_selection == "Weekly"){
@@ -290,12 +300,14 @@ server <- function(input,output,session){
       lmmodel2 = lmmodel2_weekly
       oem1_data = oem1_weekly
       oem2_data = oem2_weekly
+      by_smth = "week"
     }
     else if(input$date_selection == "Monthly"){
       lmmodel1 = lmmodel1_monthly
       lmmodel2 = lmmodel2_monthly
       oem1_data = oem1_monthly
       oem2_data = oem2_monthly
+      by_smth = "month"
     }else{
       oem1_monthly = oem1_monthly %>% mutate(hersteller = "OEM 1")
       oem2_monthly = oem2_monthly %>% mutate(hersteller = "OEM 2")
@@ -337,23 +349,24 @@ server <- function(input,output,session){
     }
     
     #Generate days for the Q1 of 2017 and make predictions
-    dates2017 = seq(ISOdate(2017,1,1),ISOdate(2017,4,1),by = "day")
+    
+    dates2017 = seq(ISOdate(2017,1,1),ISOdate(2017,4,1),by = by_smth)
     #Make a df from it for OEM1
     df2017_1 = data.frame(date = as.Date(dates2017))
-    df2017_1 = df2017_1 %>% add_predictions(lmmodel1) %>% mutate(Herstellernummer = 1,type = "linear_model") %>% rename(vehicles_sold = pred) 
+    df2017_1 = df2017_1 %>% add_predictions(lmmodel1) %>% mutate(Herstellernummer = 1,type = "predict") %>% rename(vehicles_sold = pred) 
     
     #Make a df from it for OEM2
     df2017_2 = data.frame(date = as.Date(dates2017))
-    df2017_2 = df2017_2 %>% add_predictions(lmmodel2) %>% mutate(Herstellernummer = 2,type = "linear_model") %>% rename(vehicles_sold = pred) 
+    df2017_2 = df2017_2 %>% add_predictions(lmmodel2) %>% mutate(Herstellernummer = 2,type = "predict") %>% rename(vehicles_sold = pred) 
     
     
     daily_result = rbind(oem1_data,oem2_data,df2017_1,df2017_2)
     
     #To draw lines
     predictions_1 = oem1_data  %>% add_predictions(lmmodel1) %>% select(-vehicles_sold) %>% rename(vehicles_sold = pred) %>%
-      mutate(type = "predict")
+      mutate(type = "linear_model")
     predictions_2 = oem2_data  %>% add_predictions(lmmodel2) %>% select(-vehicles_sold) %>% rename(vehicles_sold = pred) %>%
-      mutate(type = "predict")
+      mutate(type = "linear_model")
     
     daily_result = rbind(daily_result,predictions_1,predictions_2)
     

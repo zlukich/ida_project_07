@@ -25,9 +25,10 @@ if(!require(install.load)){
 }
 
 
-install_load("tidyverse", "data.table")
+install_load("tidyverse", "data.table","knitr")
 library(tidyverse)
 library(data.table)
+library(knitr)
 
 if ("fitdistrplus" %in% (.packages())){
 detach(package: fitdistrplus, unload = TRUE)
@@ -879,4 +880,131 @@ rm(zulassungen_part, zulassungen_final)
 ```{r message = FALSE, warning = FALSE}
 write_csv(final_data, "Final_dataset_group_07.csv")
 ```
+
+
+## **Evaluation**
+
+Generated final data set is used in further analysis of sales figures of 2 brands OEM1 and OEM2. Additional vizualisations are be built on basis of that table, containing columns: `r colnames(final_data)`  
+
+```{r}
+str(final_data)
+```
+
+Columns that represent defective vehicles,components and parts calculated using fact, that if defective part is part of some component this implies that component is also defective. The same principle applies for vehicle, if vehicle contains defective component => vehicle is defective. In the end we have this chain "Defective Part" -> "Defective Component" -> "Defective Vehicle".
+
+Here is summary information for the dataset which provides statistical information for the sales figures of respective brands. Interesting in this table is that the mean number of defective vehicle is slightly less than mean number of vehicles overall produced for a specific day (this is due to chain from previous paragraph)
+```{}
+summary(final_data)
+```
+
+
+### 4.c Creating forecast linear regression for the development of sales figures
+
+The main task of this chapter is to get approximate number of vehicle that will be registered in the following Q1 2017, using data for registrations from 2014-2016. The forecast must be based on linear regression model with an assumption that number of vehicles sold in the next year could be drive from linear function with slope and intercept driven from previous years.
+
+So the main linear regression approach is to prepare data based on different basis, such as: daily, weekly, monthly. And the create a model using function lm() from "stats" package passing such formula "Number of Vehicle ~ Zulassung"
+
+To vizualise the data correctly the modified data set contains additional column with names:
+* train - data from 2014 - 2016
+* predict - data collected by model for 2017
+* linear_model - data collected by model for 2014-2016
+
+- Example of modification and model building on daily basis - 
+
+```{r modification,warning = FALSE,echo = FALSE,message=FALSE}
+#OEM 1 
+oem1 = final_data %>% 
+  filter(Herstellernummer == 1) %>% 
+  rename(vehicles_sold = 'Number of Vehicle')
+
+#group by day and herstellernummer
+oem1_daily = oem1 %>% 
+  group_by(Zulassung, Herstellernummer) %>% 
+  summarize(vehicles_sold = sum(vehicles_sold)) %>% 
+  mutate(type = "train") %>%
+  rename(date = Zulassung)
+
+#daily model OEM 1
+lmmodel1_daily = lm(vehicles_sold ~ date, data = oem1_daily)
+
+head(oem1_daily)
+```
+Data preparation for monthly and weekly basis uses slightly more complex logic, all the data has to be grouped by specific month with number of vehicles sold summed up. For this we use functions **year()** and **month()** to create temporary column for grouping. Then on this basis we will generate date representing number of vehicles sold for specific month, in our case the first day of the month is collective day of autos that will be sold this month (we can think about it like accounting problem)
+
+```{r,warning = FALSE,echo = FALSE,message=FALSE}
+oem1_monthly = oem1 %>% 
+  mutate(date_month = paste0(year(Zulassung),"-",month(Zulassung))) %>%
+  group_by(date_month, Herstellernummer) %>% 
+  summarize(vehicles_sold = sum(vehicles_sold)) %>% 
+  mutate(type = "train") %>% 
+  mutate(date_month = as.Date(paste0(date_month,"-","1"),"%Y-%m-%d")) %>% 
+  rename(date = date_month)
+
+lmmodel1_monthly = lm(vehicles_sold~date,data = oem1_monthly)
+
+head(oem1_monthly)
+```
+
+Weekly basis uses the same logic and building of that dataset will not be placed here, but in results.
+
+Using the models built on prepared data we generate some predictions for the following quarter, but for that is also data frame with dates of 2017 is needed. For that we use function **seq()** and then **add_predictions()**
+
+```{r,warning = FALSE,echo = FALSE,message=FALSE}
+dates2017 = seq(ISOdate(2017,1,1),ISOdate(2017,4,1),by = "day")
+#Make a df from it for OEM1
+df2017_1 = data.frame(date = as.Date(dates2017))
+df2017_1 = df2017_1 %>% add_predictions(lmmodel1_daily) %>% mutate(Herstellernummer = 1,type = "predict") %>% rename(vehicles_sold = pred)
+
+head(df2017_1)
+```
+This table represent predicted values of sold vehicles for Q1 2017 based on daily model, same logic applies for weekly and monthly.
+
+**Arima** 
+Not necessary part was to generate also non-linear model, but we did it in order to understand how our linear regression analysis model differs from another approaches. Arima model uses another statistical methods based on auto regressive moving average for the time series. Data preparation for arima uses function **ts()** and fitting data is completed by **auto.arima()** function from forecast package.
+
+**Vizualisation** in shiny App.
+
+All prepared data is binded to a single dataset that can be vizualised using **ggplotly()** function from plotly package. The user interface in shiny app contains 4 Radiobuttons `r c("Daily","Weekly","Monthly","Arima")` that are used on server to change model and data to pass to ggplotly. Also the data is faceted by Herstellernummer to compare vehicles sales for a different brands at the same plane.
+
+The Forecasting is placed in tab with the name "4.d Forecast"
+
+### 4.d Underlying table as data set 
+
+In order to create vizualisation for data set the following shiny ui function is used **dataTableOutput(outputId = "view"))**, on the server side is our final_data set is passed.
+
+Data from dataset can be scrolled and filtered by user.
+
+## **Result**
+
+Here are the screenshots
+
+### 4.d Forecast
+
+
+By the opening of tab Forecast we see 4 Radiobuttons at the left side, at the beginning choice "Daily" is selected. At the right side we always see 2 stacked plots that represent number of vehicles sold by date with predicted values for Q1 2017.
+
+
+```{r daily_plot, echo=FALSE, fig.cap="Daily forecast plot", out.width = '100%'}
+knitr::include_graphics("Additional files/daily_plot.png")
+```
+
+If we select other choice 
+
+```{r weekly_monthly, fig.show = "hold", out.width = "50%", fig.align = "default"}
+
+knitr::include_graphics("Additional files/weekly_plot.png")
+
+knitr::include_graphics("Additional files/monthly_plot.png")
+knitr::include_graphics("Additional files/arima_plot.png")
+
+```
+As we can see from plots linear model doesn't fit well to make precise predictions, because residual for each date is very high, but from the linear model we can get information about general trend and comparison of number of vehicles sold not only for the date but also for the respective brand. From daily plot we can see 2 main conclusions, first of all the mean number of sold vehicles of OEM1 is greater than sold vehicles for OEM2, and for the second trend of OEM1 is increasing, while trend of OEM2 is decreasing. 
+
+Numbers from plots:
+
+At the first date of 2014 linear model has for the vehicles sold calculated number of ~ 46 vehicles, during the last 2017 day calculated number reaches ~56. For the OEM2 picture looks different, calculated number of vehicles sold (by model) at the beginning is ~46, by the last day of Q1 2017 it falls to ~34.
+
+### 4.c View
+
+
 
