@@ -133,7 +133,7 @@ ggplotly(logistics_delay)
 ```
 
 ### Task 1.d - Decision Tree
-To create a decision tree, its important to know what and how many attributes there are, that influence the defect of component K7. Based on the data set K7, there are four columns that could be relevant. These are IDNummer, Produktionsdatum, Herstellernummer and Werksnummer. It could be noticed, that the IDNummer, Hersteller, and Werksnummer contain similar information. Herstellernummer and Werksnummer are directly connected, hence both should not be considered as different attribute. Inside the IDNummer, Herstellernummer and Werksnummer are also included and followed by the serie number of production. Hence, the IDNummer also should not be distinguished as an extra attribute. Based on this, the defect of component K7 is attributed solely from Produktionsdatum and Herstellernummer. The data set could be summarized as follow:
+To create a decision tree, its important to know what and how many attributes there are, that influence the defect of component K7. Based on the data set K7, there are four columns that could be relevant. These are IDNummer, Produktionsdatum, Herstellernummer and Werksnummer. It could be noticed, that the IDNummer, Hersteller, and Werksnummer contain similar information. Herstellernummer and Werksnummer are directly connected, hence both should not be considered as different attribute. Inside the IDNummer, Herstellernummer and Werksnummer are also included and followed by the serie number of production. Hence, the IDNummer should also not be included as a different attribute. Based on this, the defect of component K7 is attributed solely from Produktionsdatum and Herstellernummer. The data set could be summarized as follow:
 
 ```{r}
 K7_decision_tree <- K7 %>% 
