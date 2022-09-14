@@ -9,120 +9,165 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# 1 Packages Installation
+# Packages Installation
 
  
-
-```{r  libraries, echo = FALSE, message = FALSE,warning = FALSE}
-#Sichern, dass StringsAsFactors gleich FALSE
+```{r  libraries, message = FALSE,warning = FALSE}
+# Make sure, that StringsAsFactors = FALSE
 options(stringsAsFactors = F)
 
-# Überprüfen, ob die Packages bereits installiert sin
-if(!require(readr)){
-  # wenn es nicht installiert ist, wird es nun installiert
-  install.packages("readr", dependencies = TRUE)
-  library(readr)
+if(!require(install.load)){
+  install.packages("install.load")
+  library(install.load)
 }
 
-
-if(!require(tidyverse)){
-  install.packages("tidyverse")
-  library(tidyverse)
-}
-
-
-if(!require(moments)){
-  install.packages("moments")
-  library("moments")
-}
-if(!require("plotly")){
-  install.packages("plotly")
-  library(plotly)
-}
-
-if (!require("data.table")) {
-  install.packages("data.table")
-  library(data.table)
-}
+install_load("tidyverse", "moments", "plotly", "data.table", "fitdistrplus")
+library(tidyverse)
+library(moments)
+library(plotly)
+library(data.table)
+library(fitdistrplus)
 ```
 
-# 2 Data Import
 
+# General Task
+## Task 1
 
-```{r import,  echo=TRUE, message = FALSE, warning = FALSE}
-#for semicolon delimited
+### Data Import
+
+In this task, we have to create a distribution of logistic delay of component K7. Two data sets were provided, which are `Komponente_K7.csv`, which contains production date, and `Logistikverzug_K7.csv`, which contains incoming date of the product. To start analyzing the data, we must import the data sets and set their column types accordingly.
+```{r echo=TRUE, message = FALSE, warning = FALSE}
+# Ror semicolon delimited
 K7 <- read_csv2("Data/Logistikverzug/Komponente_K7.csv")[2:6]
 K7$Fehlerhaft <- as.logical(K7$Fehlerhaft)
 K7$Produktionsdatum <- as.Date(K7$Produktionsdatum,
                                           format = "%Y-%m-%d")  
-# for comma delimited
+# For comma delimited
 LK7 <- read_csv("Data/Logistikverzug/Logistikverzug_K7.csv")[2:6]
 LK7$Fehlerhaft <- as.logical(LK7$Fehlerhaft)
 LK7$Wareneingang <- as.Date(LK7$Wareneingang,
                                           format="%Y-%m-%d")
-str(K7)
-str(LK7)
 ```
 
-
-```{r join ,echo=TRUE, message = FALSE,warning = FALSE}
+### Data Preparation
+After importing the data, we check if the column Fehlerhaft in both data sets are equal.
+```{r echo=TRUE, message = FALSE, warning = FALSE}
 
 Result<- K7$Fehlerhaft == LK7$Fehlerhaft
-Result_filter<- Result[FALSE]
-#the column Fehlerhaft is equal in both datasets
-Kom_K7_LK7 <- K7 %>% full_join(LK7, by = c("IDNummer","Herstellernummer", "Werksnummer","Fehlerhaft"))%>%
-#creates a new column Wochentag   
-mutate(Wochentag = weekdays(Produktionsdatum))
-#filter NA values
-Kom_K7_LK7_NA <-Kom_K7_LK7 %>% filter(!is.na(Produktionsdatum))%>%filter(!is.na(Wareneingang)) %>% 
-  mutate(Warenausgang = ifelse(Wochentag == "Freitag",Produktionsdatum +3,ifelse(Wochentag =="Samstag",Produktionsdatum +2,Produktionsdatum +1)))
-Kom_K7_LK7_NA$Warenausgang <- as.Date(Kom_K7_LK7_NA$Warenausgang,origin = "1970-01-01",
-                                          format="%Y-%m-%d")
-Kom_K7_LK7_NA <- Kom_K7_LK7_NA %>% mutate(Verzug = Wareneingang - Warenausgang)
+Result[FALSE]
 
 ```
-# 3 General Task 
+Based on this result, the column Fehlerhaft are in both data sets equal. Now, both data sets K7 and LK7 can be combined by using `full_join()`. A column with the name Wochentag is created for the day of production date. Afterwards, all NA values in the column Produktionsdatum and Wareneingang are filtered. A column Warenausgang is created, if the day of production date is Friday and Saturday. If the production day is Friday and Saturday, the product can be sent only on Monday, hence the production date is added by 3 or 2 respectively. For all other days, this date is added by 1.
+```{r echo=TRUE, message = FALSE, warning = FALSE}
+logistics_delay <- K7 %>% 
+  full_join(LK7, by = c("IDNummer","Herstellernummer", "Werksnummer","Fehlerhaft")) %>%
+  mutate(Wochentag = weekdays(Produktionsdatum)) %>%  # Creates a new column Wochentag
+  filter(!is.na(Produktionsdatum)) %>% # Filter NA values
+  filter(!is.na(Wareneingang)) %>% # Filter NA values
+  mutate(Warenausgang = ifelse(Wochentag == "Freitag",
+                               Produktionsdatum +3,
+                               ifelse(Wochentag == "Samstag",
+                                      Produktionsdatum +2,
+                                      Produktionsdatum +1))) 
+```
 
-## 3.1 Logistics 
-### a Logistic distribution
- 
+The column Warenausgang can now be formatted in date-format. Logistic delay can then be calculated by substracting the incoming date (Wareneingang) with the outgoing date (Warenausgang).
+```{r echo=TRUE, message = FALSE, warning = FALSE}
+logistics_delay <- logistics_delay %>%
+  mutate(Warenausgang = as.Date(Warenausgang,
+                                origin = "1970-01-01",
+                                format="%Y-%m-%d")) %>% 
+  mutate(Verzug = Wareneingang - Warenausgang)
+```
+
+
+### Task 1.a - Logistics Distribution
+
+To determine the distribution of the logistic delay, we use the function `descdist` from the package `fitdistrplus`. To use this, the column Verzug needs to be converted in numeric. Afterwards, the column is analyzed for discrete distribution, since the data contains integer values. 
+```{r}
+# Convert Verzug column in numeric
+logistics_delay$Verzug <- as.numeric(logistics_delay$Verzug) 
+
+# Determine the logistics distribution
+descdist(logistics_delay$Verzug, discrete = TRUE)
+
+```
+According to the Cullen and Frey graph, the logistics data follows negative binomial distribution. Based on the fact that the skewness value is positive and the mean value is slightly larger than median, the distribution is positively skewed (Source: https://www.vrcbuzz.com/karl-pearsons-coefficient-of-skewness-using-r-with-examples/).
+
+
+
+The skewness value is to analyze the symmetrie or the lack of symmetrie  of the distribution. In this case it is  possible to observe that this is negative. The value is -0,84. This means that the tail is on the left side of the distribution. The kurtosis value is greather than 3, it is said to be leptokurtic.This means that there are more chances to be outliers and that the distribution is peakead and haslong tails (thick)
 ```{r logistic distribution, warning= FALSE}
-Kom_K7_LK7_NA$Verzug <- as.integer(Kom_K7_LK7_NA$Verzug)
-summary(Kom_K7_LK7_NA$Verzug)
-#skew(Kom_K7_LK7_NA$Verzug)
-mean <- mean(Kom_K7_LK7_NA$Verzug)
-median <- median(Kom_K7_LK7_NA$Verzug)
-stdev <- sd(Kom_K7_LK7_NA$Verzug)
+summary(logistics_delay$Verzug)
+#skew(logistics_delay$Verzug)
+mean <- mean(logistics_delay$Verzug)
+median <- median(logistics_delay$Verzug)
+stdev <- sd(logistics_delay$Verzug)
 skewness <-3*(mean-median)/stdev #Pearson’s Coefficient of Skewness using the median
-kurtosis<-kurtosis(Kom_K7_LK7_NA$Verzug)
+kurtosis<-kurtosis(logistics_delay$Verzug)
 cat("skewness: ",skewness)
 cat("kurtosis: ",kurtosis)
 #https://www.vrcbuzz.com/karl-pearsons-coefficient-of-skewness-using-r-with-examples/
 ```
 
-The Skewness value is to analyze the symmetrie or the lack of symmetrie  of the distribution. In this case it is  possible to observe that this is negative. The value is -0,84. This means that the tail is on the left side of the distribution. The kurtosis value is greather than 3, it is said to be leptokurtic.This means that there are more chances to be outliers and that the distribution is peakead and haslong tails (thick)
 
-### b Logistics delay mean
+
+### Task 1. b - Logistics Delay Mean
+To calculate the mean, following code is implemented.
 ```{r mean , echo=TRUE, message=FALSE,warning = FALSE}
-mean <- as.numeric(mean(Kom_K7_LK7_NA$Verzug)) 
+mean <- as.numeric(mean(logistics_delay$Verzug)) 
 
 # Ausgeben der Ergebnisse
-cat("Mittelwert:", mean)
+cat("Mean = ", mean)
 ```
-## Visualization
+### Task 1.c -  Visualization
 ```{r visualization,warning = FALSE}
 binwith <-(14-1)/14
-logistic_delay <-ggplot(Kom_K7_LK7_NA, aes(x = Verzug ))+
+logistics_delay <-ggplot(logistics_delay, aes(x = Verzug ))+
   geom_histogram(aes(y = stat(density)),colour="black", fill="white", binwidth=1)+
   scale_x_continuous(breaks = c(0:14))+
   geom_density( fill="#FF6666",adjust = 10,alpha = 0.5) 
 
 
-ggplotly(logistic_delay)
-#plot(logistic_delay)
+ggplotly(logistics_delay)
 ```
-## 3.2 Data base structure 
-## 3.3 Components 
+
+### Task 1.d - Decision Tree
+To create a decision tree, its important to know what and how many attributes there are, that influence the defect of component K7. Based on the data set K7, there are four columns that could be relevant. These are IDNummer, Produktionsdatum, Herstellernummer and Werksnummer. It could be noticed, that the IDNummer, Hersteller, and Werksnummer contain similar information. Herstellernummer and Werksnummer are directly connected, hence both should not be considered as different attribute. Inside the IDNummer, Herstellernummer and Werksnummer are also included and followed by the serie number of production. Hence, the IDNummer also should not be distinguished as an extra attribute. Based on this, the defect of component K7 is attributed solely from Produktionsdatum and Herstellernummer. The data set could be summarized as follow:
+
+```{r}
+K7_decision_tree <- K7 %>% 
+  dplyr::select(Produktionsdatum, Herstellernummer, Fehlerhaft) %>% 
+  arrange(desc(Fehlerhaft))
+
+head(K7_decision_tree)
+tail(K7_decision_tree)
+```
+
+The next step would be to determine, which of the attributes can be considered as root characteristics. To do this, we have to measure Information Gain value $IG(D,A)$ by applying each attribute A of both Produktionsdatum and Herstellernummer to the destination attribute D, which is in this case Fehlerhaft . This can be calculated by substracting $H(D)$, which is the entropy of the datset of destination attribute D, with $Rest(A)$, which is the remaining entropy that is still there after testing attribute A.
+
+To calculate entropy of the dataset D, following equation is used, whereby the variable $q$ describes the proportion of defective components to the total number of components:
+```{r echo = FALSE, fig.show = "hold", out.width = "40%", fig.align = "center"}
+knitr::include_graphics("Additional files/Entropy.jpg")
+
+```
+
+Afterwards, we can calculate the remaining entropy of each attributes (Produktionsdatum and Herstellernummer) by using following equation:
+
+```{r echo = FALSE, fig.show = "hold", out.width = "50%", fig.align = "center"}
+knitr::include_graphics("Additional files/Rest_entropy.jpg")
+
+```
+For this, $p_{k}$ and $n_{k}$ corresponds with the number of defective and non-defective components in correlation with each component of corresponding attributes. $q_{k}$ can be calculated by dividing $p_{k}$ with the sum of $p_{k}$ and $n_{k}$. By using this equation, we can calculate the remaining entropy for both Produktionsdatum - $Rest(Produktionsdatum)$ - and Herstellersnummer - $Rest(Herstellersnummer)$ and hence determine the Information Gain for both $IG(D, Produktionsdatum$ and $IG(D, Produktionsdatum)$. The attribute with the largest information gain would then be selected as the root attribute and the other as the sub-attribute. The decision tree may look as follow.
+
+```{r echo = FALSE, fig.show = "hold", out.width = "75%", fig.align = "center"}
+knitr::include_graphics("Additional files/Decision_tree.jpg")
+
+```
+
+## Task 2 Data Base Structure
+
+## Task 3 Components 
 ```{r reading zulassung,warning = FALSE}
 #reading txt file 
 T16 <-file("Data/Einzelteil/Einzelteil_T16.txt",open = "r")
@@ -141,13 +186,13 @@ zulassung_adel=zulassung%>%filter(Gemeinden =="ADELSHOFEN")
 
 ```
 
-```{r reading Teil-Komponente,warning = FALSE }
+```{r warning = FALSE }
 #reading T16 Teil Komponente
 
 #for semicolon delimited
-T16_Kom_1 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K2LE2.csv")%>%select("ID_T16","ID_K2LE2")
+T16_Kom_1 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K2LE2.csv")%>%dplyr::select("ID_T16","ID_K2LE2")
 names(T16_Kom_1)[2]<-"ID_Sitze"
-T16_Kom_2 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K2ST2.csv")%>%select("ID_T16","ID_K2ST2")
+T16_Kom_2 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K2ST2.csv")%>%dplyr::select("ID_T16","ID_K2ST2")
 names(T16_Kom_2)[2]<-"ID_Sitze"
 ```
 ```{r reading Komponente,warning = FALSE}
@@ -156,16 +201,16 @@ names(T16_Kom_2)[2]<-"ID_Sitze"
 #K2LE2_L <- readLines(T16 )%>%str_replace_all(., " \ ", "\t")
 #K2LE2 <-fread(text =lines)
 
-Kom_K2LE2<- read.delim("Data/Komponente/Komponente_K2LE2.txt",sep = "\\")%>%select(c("ID_Sitze","Werksnummer")) # not need to read it doesnt give any extra info
-Kom_K2ST2<-read_csv2("Data/Komponente/Komponente_K2ST2.csv")%>%select(c("ID_Sitze","Werksnummer"))
+Kom_K2LE2<- read.delim("Data/Komponente/Komponente_K2LE2.txt",sep = "\\")%>%dplyr::select(c("ID_Sitze","Werksnummer")) # not need to read it doesnt give any extra info
+Kom_K2ST2<-read_csv2("Data/Komponente/Komponente_K2ST2.csv")%>%dplyr::select(c("ID_Sitze","Werksnummer"))
 T16_K2LE2<-T16_Kom_1%>%left_join(Kom_K2LE2,by="ID_Sitze")#c("ID_Kom"="ID_Sitze")
 T16_K2ST2<-T16_Kom_2%>%left_join(Kom_K2ST2,by="ID_Sitze")
 T16_Kom_bind<-rbind(T16_K2LE2,T16_K2ST2)
 ```
 ```{r Bestandteil Fahrzeug  ,warning = FALSE}
 #read Bestandteil Fahrzeuge and combine them
-Kom_Fahr_1<-read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv")%>%select(c("ID_Sitze","ID_Fahrzeug"))
-Kom_Fahr_2<-read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv")%>%select(c("ID_Sitze","ID_Fahrzeug"))
+Kom_Fahr_1<-read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv")%>%dplyr::select(c("ID_Sitze","ID_Fahrzeug"))
+Kom_Fahr_2<-read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv")%>%dplyr::select(c("ID_Sitze","ID_Fahrzeug"))
 Kom_Fahr_bind<-rbind(Kom_Fahr_1,Kom_Fahr_2)
 ```
 ```{r creating dataset,warning = FALSE}
@@ -179,21 +224,21 @@ Number of Cars register in ADELSHOFEN:
 ```{r}
 nrow(Kom_Fahr_Adel)
 ```
-## 3.4 Data Type attributes 
+## Task 4 Data Type Attributes 
 The Data type of the table "Zulassung" is shown with the str() function
 ```{r zulassung data type,warning = FALSE}
 str(zulassung)
 ```
-## 3.5 Server 
+## Task 5 Server 
 To Save the records on the database of a server has the advantage that no local memory is occupied but more important, a permanent access to the most recently data records can be in most cases guaranteed, with a few exception as for example when maintenance takes place. 
 
 Since databases tend to store a large amount of data, this could cause the computer to slow down. Also the quality of the data deteriorate very fast, since the data doesnt get updated. 
 
 "RStudio Shiny Server Open Source" allows customers to get access to the app from anywhere with any web browser
 
-## 3.6 car registration
+## Task 6 Car Rsegistration
 ```{r registration,warning = FALSE}
-car<-read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv")%>%select(c("ID_Karosserie","ID_Fahrzeug"))%>%filter(ID_Karosserie == "K5-112-1122-79")
+car<-read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv")%>%dplyr::select(c("ID_Karosserie","ID_Fahrzeug"))%>%filter(ID_Karosserie == "K5-112-1122-79")
 car_registerd<-filter(zulassung, IDNummer == car$ID_Fahrzeug)
 gemeinden <- as.character(car_registerd$Gemeinden)
 cat("Car with ID Karosserie'K5-112-1122-79' got registered in ",
