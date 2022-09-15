@@ -123,13 +123,13 @@ cat("Mean = ", mean)
 ### Task 1.c -  Visualization
 ```{r visualization,warning = FALSE}
 binwith <-(14-1)/14
-logistics_delay <-ggplot(logistics_delay, aes(x = Verzug ))+
+logistics_delay_plot <-ggplot(logistics_delay, aes(x = Verzug ))+
   geom_histogram(aes(y = stat(density)),colour="black", fill="white", binwidth=1)+
   scale_x_continuous(breaks = c(0:14))+
   geom_density( fill="#FF6666",adjust = 10,alpha = 0.5) 
 
 
-ggplotly(logistics_delay)
+ggplotly(logistics_delay_plot)
 ```
 
 ### Task 1.d - Decision Tree
