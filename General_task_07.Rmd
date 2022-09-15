@@ -121,13 +121,13 @@ mean <- as.numeric(mean(logistics_delay$Verzug))
 cat("Mean = ", mean)
 ```
 ### Task 1.c -  Visualization
-<<<<<<< HEAD
 To determine the bin width for our histogram, we calculate the difference between Max, in our data equals to 14, and Min value, in our data equals to 1, of the delays and divide it by the total number of bins, in this data equals to 14. So the bin width is:
 
-```{r warning = FALSE}
+```{r echo = TRUE, warning = FALSE}
 binwidth <-(14-1)/14
+cat("Binwidth = ", binwidth)
 ```
-Since the calculated binwidth is 0,9, it would make much more sense to round it to 1, because the delay days are integer numbers.
+Since the calculated binwidth is 0,9, it would make much more sense to round it to 1, because the delay days are integer numbers. The data can be plotted as follows:
 
 ```{r warning = FALSE}
 
@@ -177,42 +177,42 @@ knitr::include_graphics("Additional files/Decision_tree.jpg")
 
 It is reasonable to save data in separate files instead of one huge table, because:
 
-* 1. More stable in term of losing information, if user somehow accidentally deletes 1 file, it won't affect all other tables.
-<<<<<<< HEAD
-* 2. We can manipulate with data separately for the cases when is isn't needed to import whole dataset, also there are possibility, that total table can be to huge to save it to memory. In our case f.e. to find number of registered parts we don't have to import parts tables, because the parts information already stored in bestandteile for components.
-* 3. To avoid repeating of information and/or accumulation of NULL values. If tha data table consists of more that 1 data source or data essences, then it could be that 1 essence contains some attribute (in our case f.e. specific part) and other essence doesn't. That means all observations that doesn't contain that attribute will have a NULL value in that column (this can be massive). In our case if we create only 1 dataset containing all vehicles with their parts, some vehicles would have T16 part, but majority - not -> almost full column of NULL values
-* 4. It is quicker to find information in separate file, because size of separate file is less than whole table
-* 5. More Flexibility in terms of memory because each file can be store on different servers 
-* 6. The user can do pick and choose, that means the user can decide which data they want to read and there is not need to read and load the whole table
-Provided structure represent relational database structure. It contains reference keys, binding tables and built on table basis.
-* 7. It is more secure. In one hand it would be possible to manage the access to the data therefore the users would get permissions to what they need and not to the whole data set. On the other hand,if an account gets hacked, the hacker would only see part of the information but the the whole data. 
-The Database structure used in this case, is the relational. This means that the data points are related to one another. 
+1. More stable in term of losing information, if user somehow accidentally deletes 1 file, it won't affect all other tables.
+2. The user can do pick and choose, that means the user can decide which data they want to read and there is not need to read and load the whole table.
+3. NULL values would not then be accumulated. In our case study, if we create only 1 data set containing all vehicles with their parts, some vehicles would have T16 part, but the majority doesn't, which would result in to a data set with almost full column of NULL values.
+4. It is quicker to find information in separate files, because the size of separate file is smaller than the size of the whole table.
+5. More Flexibility in terms of memory because each file can be store on different servers.
+6. It is more secure. In one hand, it would be possible to manage the access to the data therefore the users would get permissions to what they need and not to the whole data set. On the other hand, if an account gets hacked, the hacker would only see part of the information but the the whole data.
 
+Provided structure represents a relational database structure. It contains reference keys, binding tables and built on table basis.
 
 ## Task 3 Components
-To determine the number of cars that were build with T16 parts and got registered in Adelshofen, it is nessecary to know the car id of the cars that have  a T16 part.
+To determine the number of cars that were build with T16 parts and got registered in ADELSHOFEN, it is necessary to know the id of the cars that have a T16 part.
 ```{r reading zulassung,warning = FALSE}
-#reading zulassung file
+# Reading Zulassung File
 zulassung <- read_delim("Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv",delim = ";",show_col_types = FALSE)
-
-```
-
-
-```{r filtering zulassung,warning = FALSE}
-#filtering Zulassung 
 zulassung_adel=zulassung%>%filter(Gemeinden =="ADELSHOFEN")
-
 ```
+
 
 ```{r reading Bestandteile Komponente, warning = FALSE }
-#reading T16 Teil Komponente
+# Reading T16 Teil Komponente
 
-#for semicolon delimited
-T16_Kom_1 <- read_delim("Data/Komponente/Bestandteile_Komponente_K2LE2.csv",delim =";",show_col_types = FALSE)%>%dplyr::select("ID_T16","ID_K2LE2")
-names(T16_Kom_1)[2]<-"ID_Sitze"
-T16_Kom_2 <- read_delim("Data/Komponente/Bestandteile_Komponente_K2ST2.csv",delim =";",show_col_types = FALSE)%>%dplyr::select("ID_T16","ID_K2ST2")
+T16_Kom_1 <- read_delim("Data/Komponente/Bestandteile_Komponente_K2LE2.csv",
+                        delim =";",
+                        show_col_types = FALSE) %>%
+  dplyr::select("ID_T16","ID_K2LE2")
+
+names(T16_Kom_1)[2] <- "ID_Sitze"
+
+T16_Kom_2 <- read_delim("Data/Komponente/Bestandteile_Komponente_K2ST2.csv",
+                        delim =";",
+                        show_col_types = FALSE) %>%
+  dplyr::select("ID_T16","ID_K2ST2")
+
 names(T16_Kom_2)[2]<-"ID_Sitze"
 ```
+
 ```{r reading Komponente,warning = FALSE}
 
 Kom_K2LE2<- read.delim("Data/Komponente/Komponente_K2LE2.txt",sep ="\\")%>%dplyr::select(c("ID_Sitze","Werksnummer")) # not need to read it doesnt give any extra info
