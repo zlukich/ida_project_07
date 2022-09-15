@@ -363,9 +363,9 @@ server <- function(input,output,session){
     daily_result = rbind(oem1_data,oem2_data,df2017_1,df2017_2)
     
     #To draw lines
-    predictions_1 = oem1_data  %>% add_predictions(lmmodel1) %>% select(-vehicles_sold) %>% rename(vehicles_sold = pred) %>%
+    predictions_1 = oem1_data  %>% add_predictions(lmmodel1) %>% dplyr::select(-vehicles_sold) %>% rename(vehicles_sold = pred) %>%
       mutate(type = "linear_model")
-    predictions_2 = oem2_data  %>% add_predictions(lmmodel2) %>% select(-vehicles_sold) %>% rename(vehicles_sold = pred) %>%
+    predictions_2 = oem2_data  %>% add_predictions(lmmodel2) %>% dplyr::select(-vehicles_sold) %>% rename(vehicles_sold = pred) %>%
       mutate(type = "linear_model")
     
     daily_result = rbind(daily_result,predictions_1,predictions_2)
