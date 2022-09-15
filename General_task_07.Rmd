@@ -167,6 +167,13 @@ knitr::include_graphics("Additional files/Decision_tree.jpg")
 
 ## Task 2 Data Base Structure
 
+It is reasonable to save data in separate files instead of one huge table, because:
+
+* 1. More stable in term of losing information, if user somehow accidentally deletes 1 file, it won't affect all other tables.
+* 2. 
+* 3.
+* 4.
+
 ## Task 3 Components 
 ```{r reading zulassung,warning = FALSE}
 #reading txt file 
