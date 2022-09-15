@@ -121,6 +121,7 @@ mean <- as.numeric(mean(logistics_delay$Verzug))
 cat("Mean = ", mean)
 ```
 ### Task 1.c -  Visualization
+<<<<<<< HEAD
 To determine the bin width for our histogram, we calculate the difference between Max, in our data equals to 14, and Min value, in our data equals to 1, of the delays and divide it by the total number of bins, in this data equals to 14. So the bin width is:
 
 ```{r warning = FALSE}
@@ -129,13 +130,14 @@ binwidth <-(14-1)/14
 Since the calculated binwidth is 0,9, it would make much more sense to round it to 1, because the delay days are integer numbers.
 
 ```{r warning = FALSE}
-logistics_delay <- ggplot(logistics_delay, aes(x = Verzug ))+
-  geom_histogram(aes(y = stat(density)),colour="black", fill="white", binwidth = 1)+
+
+logistics_delay_plot <- ggplot(logistics_delay, aes(x = Verzug ))+
+  geom_histogram(aes(y = stat(density)),colour="black", fill="white", binwidth=1)+
   scale_x_continuous(breaks = c(0:14))+
   geom_density( fill="#FF6666",adjust = 10,alpha = 0.5) 
 
 
-ggplotly(logistics_delay)
+ggplotly(logistics_delay_plot)
 ```
 
 ### Task 1.d - Decision Tree
@@ -176,10 +178,16 @@ knitr::include_graphics("Additional files/Decision_tree.jpg")
 It is reasonable to save data in separate files instead of one huge table, because:
 
 * 1. More stable in term of losing information, if user somehow accidentally deletes 1 file, it won't affect all other tables.
-* 2. More Flexibility in terms of memory because each file can be store on different servers 
-* 3. The user can do pick and choose, that means the user can decide which data they want to read and there is not need to read and load the whole table 
-* 4. It is more secure. In one hand it would be possible to manage the access to the data therefore the users would get permissions to what they need and not to the whole data set. On the other hand,if an account gets hacked, the hacker would only see part of the information but the the whole data. 
+<<<<<<< HEAD
+* 2. We can manipulate with data separately for the cases when is isn't needed to import whole dataset, also there are possibility, that total table can be to huge to save it to memory. In our case f.e. to find number of registered parts we don't have to import parts tables, because the parts information already stored in bestandteile for components.
+* 3. To avoid repeating of information and/or accumulation of NULL values. If tha data table consists of more that 1 data source or data essences, then it could be that 1 essence contains some attribute (in our case f.e. specific part) and other essence doesn't. That means all observations that doesn't contain that attribute will have a NULL value in that column (this can be massive). In our case if we create only 1 dataset containing all vehicles with their parts, some vehicles would have T16 part, but majority - not -> almost full column of NULL values
+* 4. It is quicker to find information in separate file, because size of separate file is less than whole table
+* 5. More Flexibility in terms of memory because each file can be store on different servers 
+* 6. The user can do pick and choose, that means the user can decide which data they want to read and there is not need to read and load the whole table
+Provided structure represent relational database structure. It contains reference keys, binding tables and built on table basis.
+* 7. It is more secure. In one hand it would be possible to manage the access to the data therefore the users would get permissions to what they need and not to the whole data set. On the other hand,if an account gets hacked, the hacker would only see part of the information but the the whole data. 
 The Database structure used in this case, is the relational. This means that the data points are related to one another. 
+
 
 ## Task 3 Components
 To determine the number of cars that were build with T16 parts and got registered in Adelshofen, it is nessecary to know the car id of the cars that have  a T16 part.
