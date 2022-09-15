@@ -899,19 +899,19 @@ summary(final_data)
 ```
 
 ### 4.a Sales course 
-The Idea of this task it is to plot the sales course on specify locations of both brands OEM1 and OEM2.The type of graph used for this purpose is a line. 
+The idea of this task it is to plot the sales course on specify locations of both brands OEM1 and OEM2.The type of graph used for this purpose is a line. 
 From the image, it is possible to see, that the amount of cars sale over time is not constant but fluctuates.
-```{r include = FALSE}
+```{r echo = FALSE}
 knitr::include_graphics("Additional files/4.a.png")
 ```
 
-```{r include = FALSE}
+```{r echo = FALSE}
 knitr::include_graphics("Additional files/4.a3.png")
 ```
 
 In case no location is specify, a message would be prompted to the user. 
 
-```{r include = FALSE}
+```{r echo = FALSE}
 knitr::include_graphics("Additional files/4.a2.png")
 ```
 
@@ -919,15 +919,18 @@ knitr::include_graphics("Additional files/4.a2.png")
 ### 4.b.Defective 
 In this task, the rate of defective vehicles gets calculated according to the different brands and location. For this task a barplot was used and the data was pivoted.
 The graph shows that OEM1 has produced slightly less defective cars. On the other hand, at component and part level OEM2  has less quality Problems.
-```{r include = FALSE}
+
+```{r echo = FALSE}
 knitr::include_graphics("Additional files/4.b.png")
 ```
 Similar to the graph above, the same effect appears here. OEM1 has less defective vehicles but OEM2 has less defective parts and components
-```{r include = FALSE}
+
+```{r echo = FALSE}
 knitr::include_graphics("Additional files/4.b2.png")
 ```
 The user can also read the data from the table.
-```{r include = FALSE}
+
+```{r echo = FALSE, out.width = "150%", fig.align = "center"}
 knitr::include_graphics("Additional files/4.b3.png")
 ```
 
@@ -1002,7 +1005,9 @@ Not necessary part was to generate also non-linear model, but we did it in order
 
 All prepared data is binded to a single dataset that can be vizualised using **ggplotly()** function from plotly package. The user interface in shiny app contains 4 Radiobuttons `r c("Daily","Weekly","Monthly","Arima")` that are used on server to change model and data to pass to ggplotly. Also the data is faceted by Herstellernummer to compare vehicles sales for a different brands at the same plane.
 
-The Forecasting is placed in tab with the name "4.d Forecast"
+The Forecasting is placed in tab with the name "4.d Forecast".
+
+The screenshots of Forecast tab could be seen in the 5. Result part.
 
 ### 4.d Underlying table as data set 
 
@@ -1010,14 +1015,16 @@ In order to create vizualisation for data set the following shiny ui function is
 
 Data from dataset can be scrolled and filtered by user.
 
+In the tab 4.d View we can examine our final_data dataset that includes number of vehicles, components and parts for a specific date. Also quantity of defective ones. Shiny app provides a functionality to filter data, use pagination and change number of rows for the view.
+
+```{r view, echo=FALSE, fig.cap="View of the final data", out.width = '100%'}
+knitr::include_graphics("Additional files/4.d.png")
+```
+
+
 ## 5. Result
 
-Here are the screenshots
-
-### 4.d Forecast
-
-
-By the opening of tab Forecast we see 4 Radiobuttons at the left side, at the beginning choice "Daily" is selected. At the right side we always see 2 stacked plots that represent number of vehicles sold by date with predicted values for Q1 2017.
+By the opening of tab Forecast we see 4 radiobuttons at the left side, at the beginning choice "Daily" is selected. At the right side we always see 2 stacked plots that represent number of vehicles sold by date with predicted values for Q1 2017.
 
 
 ```{r daily_plot, echo=FALSE, fig.cap="Daily forecast plot", out.width = '100%'}
@@ -1038,13 +1045,4 @@ As we can see from plots linear model doesn't fit well to make precise predictio
 
 Numbers from plots:
 
-At the first date of 2014 linear model has for the vehicles sold calculated number of ~ 46 vehicles, during the last 2017 day calculated number reaches ~56. For the OEM2 picture looks different, calculated number of vehicles sold (by model) at the beginning is ~46, by the last day of Q1 2017 it falls to ~34.
-
-### 4.c View
-
-In the tab 4.d View we can examine our final_data dataset that includes number of vehicles, components and parts for a specific date. Also quantity of defective ones. Shiny app provides a functionality to filter data, use pagination and change number of rows for the view.
-
-```{r view, echo=FALSE, fig.cap="View of the final data", out.width = '100%'}
-knitr::include_graphics("Additional files/4.d.png")
-```
-
+At the first date of 2014 linear model has for the vehicles sold calculated number of ~ 46 vehicles, during the last 2017 day calculated number reaches ~56. For the OEM2 picture looks different, calculated number of vehicles sold (by model) at the beginning is ~46, by the last day of Q1 2017 it falls to ~34. This indicates a positive sales trend for OEM1 and a negative sales trend for OEM2. Besides that, by looking at the defective vehicle rate from both brands, we can see that OEM1 has less defective rate compared to OEM2. Based on these facts, we recommend OEM1 as the more appropriate vehicle manufacturer.
