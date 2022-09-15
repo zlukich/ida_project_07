@@ -37,13 +37,13 @@ library(fitdistrplus)
 
 In this task, we have to create a distribution of logistic delay of component K7. Two data sets were provided, which are `Komponente_K7.csv`, which contains production date, and `Logistikverzug_K7.csv`, which contains incoming date of the product. To start analyzing the data, we must import the data sets and set their column types accordingly.
 ```{r echo=TRUE, message = FALSE, warning = FALSE}
-# Ror semicolon delimited
-K7 <- read_csv2("Data/Logistikverzug/Komponente_K7.csv")[2:6]
+# For semicolon delimited
+K7 <- read_delim("Data/Logistikverzug/Komponente_K7.csv",delim = ";",show_col_types = FALSE)[2:6]
 K7$Fehlerhaft <- as.logical(K7$Fehlerhaft)
 K7$Produktionsdatum <- as.Date(K7$Produktionsdatum,
                                           format = "%Y-%m-%d")  
 # For comma delimited
-LK7 <- read_csv("Data/Logistikverzug/Logistikverzug_K7.csv")[2:6]
+LK7 <- read_delim("Data/Logistikverzug/Logistikverzug_K7.csv",delim = "," ,show_col_types = FALSE)[2:6]
 LK7$Fehlerhaft <- as.logical(LK7$Fehlerhaft)
 LK7$Wareneingang <- as.Date(LK7$Wareneingang,
                                           format="%Y-%m-%d")
@@ -51,14 +51,14 @@ LK7$Wareneingang <- as.Date(LK7$Wareneingang,
 
 ### Data Preparation
 After importing the data, we check if the column Fehlerhaft in both data sets are equal.
-```{r echo=TRUE, message = FALSE, warning = FALSE}
+```{r Fehlerhaft colum check, echo=TRUE, message = FALSE, warning = FALSE}
 
 Result<- K7$Fehlerhaft == LK7$Fehlerhaft
 Result[FALSE]
 
 ```
 Based on this result, the column Fehlerhaft are in both data sets equal. Now, both data sets K7 and LK7 can be combined by using `full_join()`. A column with the name Wochentag is created for the day of production date. Afterwards, all NA values in the column Produktionsdatum and Wareneingang are filtered. A column Warenausgang is created, if the day of production date is Friday and Saturday. If the production day is Friday and Saturday, the product can be sent only on Monday, hence the production date is added by 3 or 2 respectively. For all other days, this date is added by 1.
-```{r echo=TRUE, message = FALSE, warning = FALSE}
+```{r  logistic delay calculation,echo=TRUE, message = FALSE, warning = FALSE}
 logistics_delay <- K7 %>% 
   full_join(LK7, by = c("IDNummer","Herstellernummer", "Werksnummer","Fehlerhaft")) %>%
   mutate(Wochentag = weekdays(Produktionsdatum)) %>%  # Creates a new column Wochentag
@@ -72,7 +72,7 @@ logistics_delay <- K7 %>%
 ```
 
 The column Warenausgang can now be formatted in date-format. Logistic delay can then be calculated by substracting the incoming date (Wareneingang) with the outgoing date (Warenausgang).
-```{r echo=TRUE, message = FALSE, warning = FALSE}
+```{r logistic delay formating ,echo=TRUE, message = FALSE, warning = FALSE}
 logistics_delay <- logistics_delay %>%
   mutate(Warenausgang = as.Date(Warenausgang,
                                 origin = "1970-01-01",
@@ -170,18 +170,15 @@ knitr::include_graphics("Additional files/Decision_tree.jpg")
 It is reasonable to save data in separate files instead of one huge table, because:
 
 * 1. More stable in term of losing information, if user somehow accidentally deletes 1 file, it won't affect all other tables.
-* 2. 
-* 3.
-* 4.
-
-## Task 3 Components 
+* 2. More Flexibility in terms of memory because each file can be store on different servers 
+* 3. The user can do pick and choose, that means the user can decide which data they want to read and there is not need to read and load the whole table 
+* 4. It is more secure. In one hand it would be possible to manage the access to the data therefore the users would get permissions to what they need and not to the whole data set. On the other hand,if an account gets hacked, the hacker would only see part of the information but the the whole data. 
+The Database structure used in this case, is the relational. This means that the data points are related to one another. 
+## Task 3 Components
+To determine the number of cars that were build with T16 parts and got registered in Adelshofen, it is nessecary to know the car id of the cars that have  a T16 part.
 ```{r reading zulassung,warning = FALSE}
-#reading txt file 
-T16 <-file("Data/Einzelteil/Einzelteil_T16.txt",open = "r")
-lines <- readLines(T16 )%>%str_replace_all(., "\t", "\n")%>%str_replace_all(., " \\| \\| ", "\t")
-file <-fread(text =lines)
 #reading zulassung file
-zulassung <- read_csv2("Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv")
+zulassung <- read_delim("Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv",delim = ";",show_col_types = FALSE)
 
 ```
 
@@ -189,35 +186,30 @@ zulassung <- read_csv2("Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv")
 ```{r filtering zulassung,warning = FALSE}
 #filtering Zulassung 
 zulassung_adel=zulassung%>%filter(Gemeinden =="ADELSHOFEN")
-#
 
 ```
 
-```{r warning = FALSE }
+```{r reading Bestandteile Komponente, warning = FALSE }
 #reading T16 Teil Komponente
 
 #for semicolon delimited
-T16_Kom_1 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K2LE2.csv")%>%dplyr::select("ID_T16","ID_K2LE2")
+T16_Kom_1 <- read_delim("Data/Komponente/Bestandteile_Komponente_K2LE2.csv",delim =";",show_col_types = FALSE)%>%dplyr::select("ID_T16","ID_K2LE2")
 names(T16_Kom_1)[2]<-"ID_Sitze"
-T16_Kom_2 <- read_csv2("Data/Komponente/Bestandteile_Komponente_K2ST2.csv")%>%dplyr::select("ID_T16","ID_K2ST2")
+T16_Kom_2 <- read_delim("Data/Komponente/Bestandteile_Komponente_K2ST2.csv",delim =";",show_col_types = FALSE)%>%dplyr::select("ID_T16","ID_K2ST2")
 names(T16_Kom_2)[2]<-"ID_Sitze"
 ```
 ```{r reading Komponente,warning = FALSE}
-#reading Komponente & Combine them 
-#Kom_K2LE2 <-file("Data/Komponente/Komponente_K2LE2.txt",open = "r")
-#K2LE2_L <- readLines(T16 )%>%str_replace_all(., " \ ", "\t")
-#K2LE2 <-fread(text =lines)
 
-Kom_K2LE2<- read.delim("Data/Komponente/Komponente_K2LE2.txt",sep = "\\")%>%dplyr::select(c("ID_Sitze","Werksnummer")) # not need to read it doesnt give any extra info
-Kom_K2ST2<-read_csv2("Data/Komponente/Komponente_K2ST2.csv")%>%dplyr::select(c("ID_Sitze","Werksnummer"))
-T16_K2LE2<-T16_Kom_1%>%left_join(Kom_K2LE2,by="ID_Sitze")#c("ID_Kom"="ID_Sitze")
+Kom_K2LE2<- read.delim("Data/Komponente/Komponente_K2LE2.txt",sep ="\\")%>%dplyr::select(c("ID_Sitze","Werksnummer")) # not need to read it doesnt give any extra info
+Kom_K2ST2<-read_delim("Data/Komponente/Komponente_K2ST2.csv",delim = ";",show_col_types = FALSE)%>%dplyr::select(c("ID_Sitze","Werksnummer"))
+T16_K2LE2<-T16_Kom_1%>%left_join(Kom_K2LE2,by="ID_Sitze")
 T16_K2ST2<-T16_Kom_2%>%left_join(Kom_K2ST2,by="ID_Sitze")
 T16_Kom_bind<-rbind(T16_K2LE2,T16_K2ST2)
 ```
 ```{r Bestandteil Fahrzeug  ,warning = FALSE}
 #read Bestandteil Fahrzeuge and combine them
-Kom_Fahr_1<-read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv")%>%dplyr::select(c("ID_Sitze","ID_Fahrzeug"))
-Kom_Fahr_2<-read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv")%>%dplyr::select(c("ID_Sitze","ID_Fahrzeug"))
+Kom_Fahr_1<-read_delim("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv",delim = ";",show_col_types = FALSE)%>%dplyr::select(c("ID_Sitze","ID_Fahrzeug"))
+Kom_Fahr_2<-read_delim("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv",delim =";",show_col_types = FALSE)%>%dplyr::select(c("ID_Sitze","ID_Fahrzeug"))
 Kom_Fahr_bind<-rbind(Kom_Fahr_1,Kom_Fahr_2)
 ```
 ```{r creating dataset,warning = FALSE}
@@ -228,8 +220,8 @@ Kom_Fahr_Adel <-Kom_Fahr%>%inner_join(zulassung_adel,by =c("ID_Fahrzeug"="IDNumm
 
 ```
 Number of Cars register in ADELSHOFEN:
-```{r}
-nrow(Kom_Fahr_Adel)
+```{r cars in Adelshofen ,warning=FALSE}
+cat("Cars registered at Adelshofen",nrow(Kom_Fahr_Adel))
 ```
 ## Task 4 Data Type Attributes 
 The Data type of the table "Zulassung" is shown with the str() function
@@ -239,13 +231,14 @@ str(zulassung)
 ## Task 5 Server 
 To Save the records on the database of a server has the advantage that no local memory is occupied but more important, a permanent access to the most recently data records can be in most cases guaranteed, with a few exception as for example when maintenance takes place. 
 
-Since databases tend to store a large amount of data, this could cause the computer to slow down. Also the quality of the data deteriorate very fast, since the data doesnt get updated. 
+Since databases tend to store a large amount of data, this could cause the computer to slow down. Also the quality of the data deteriorate very fast, since the data doesn't get updated. 
 
 "RStudio Shiny Server Open Source" allows customers to get access to the app from anywhere with any web browser
 
 ## Task 6 Car Rsegistration
+In order to find out where car with the carrosserie "K5-112-1122-79" got registered, it is important to know the car ID. This is possible by reading the file " Bestandteile Fahrzeuge"
 ```{r registration,warning = FALSE}
-car<-read_csv2("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv")%>%dplyr::select(c("ID_Karosserie","ID_Fahrzeug"))%>%filter(ID_Karosserie == "K5-112-1122-79")
+car<-read_delim("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv",delim =";",show_col_types = FALSE)%>%dplyr::select(c("ID_Karosserie","ID_Fahrzeug"))%>%filter(ID_Karosserie == "K5-112-1122-79")
 car_registerd<-filter(zulassung, IDNummer == car$ID_Fahrzeug)
 gemeinden <- as.character(car_registerd$Gemeinden)
 cat("Car with ID Karosserie'K5-112-1122-79' got registered in ",
@@ -253,30 +246,8 @@ cat("Car with ID Karosserie'K5-112-1122-79' got registered in ",
 ```
 
 
-```{r,include=FALSE}
-#join Bestandteile Komp CSV
-#T16_Kom <-T16_Kom_1 %>% full_join(T16_Kom_2, by= c("ID_T16","ID_Kom"))
-#T16_Kom_bind<-rbind(T16_Kom_1,T16_Kom_2)
-```
 
 
-```{r,include=FALSE}
-#typeof(line)
-#l<-as.data.frame(line)
-```
 
-```{r rest , warning=FALSE,echo=FALSE,include=FALSE}
-#T6R<-read_file("Data/Einzelteil/Einzelteil_T16.txt")%>%str_replace_all(., "|", "\t")#%>% 
-#file <-fread(text =lines)
-#logistics_delay = logistics_delay %>%
- # mutate(Produktionsday = wday(Produktionsdatum,week_start = 1),Wareneingangday = wday(Wareneingang,week_start = 1)) %>%
-  #mutate(Delay = ifelse(Wareneingangday<Produktionsday,difftime(Wareneingang,Produktionsdatum)-1-2,
-   #                     difftime(Wareneingang,Produktionsdatum)-1)) %>%
-  #mutate(Delay = ifelse((Delay/6)>=1,
-   #                     Delay-as.integer(Delay/6)*2,
-    #                    Delay))
-#T16_adel <-file %>% left_join(zulassung_adel,by = c("ID_T16.x" = "IDNummer"))
-#nrow(filter(T16_adel, Gemeinden == "ADELSHOFEN"))
-```
 
 
