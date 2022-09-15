@@ -170,9 +170,12 @@ knitr::include_graphics("Additional files/Decision_tree.jpg")
 It is reasonable to save data in separate files instead of one huge table, because:
 
 * 1. More stable in term of losing information, if user somehow accidentally deletes 1 file, it won't affect all other tables.
-* 2. 
-* 3.
-* 4.
+* 2. We can manipulate with data separately for the cases when is isn't needed to import whole dataset, also there are possibility, that total table can be to huge to save it to memory. In our case f.e. to find number of registered parts we don't have to import parts tables, because the parts information already stored in bestandteile for components.
+* 3. To avoid repeating of information and/or accumulation of NULL values. If tha data table consists of more that 1 data source or data essences, then it could be that 1 essence contains some attribute (in our case f.e. specific part) and other essence doesn't. That means all observations that doesn't contain that attribute will have a NULL value in that column (this can be massive). In our case if we create only 1 dataset containing all vehicles with their parts, some vehicles would have T16 part, but majority - not -> almost full column of NULL values
+* 4. It is quicker to find information in separate file, because size of separate file is less than whole table
+* 5. 
+
+Provided structure represent relational database structure. It contains reference keys, binding tables and built on table basis.
 
 ## Task 3 Components 
 ```{r reading zulassung,warning = FALSE}
