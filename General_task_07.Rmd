@@ -188,13 +188,13 @@ It is reasonable to save data in separate files instead of one huge table, becau
 Provided structure represents a relational database structure. It contains reference keys, binding tables and built on table basis.
 
 ## Task 3 Components
-To determine the number of cars that were build with T16 parts and got registered in ADELSHOFEN, it is necessary to know the id of the cars that have a T16 part.
+To  get the Cars that were registered in ADELSHOFEN, we read the file "Zulassung" and we filter by Gemeinden ADELSHOFEN
 ```{r reading zulassung,warning = FALSE}
 # Reading Zulassung File
 zulassung <- read_delim("Data/Zulassungen/Zulassungen_alle_Fahrzeuge.csv",delim = ";",show_col_types = FALSE)
 zulassung_adel=zulassung%>%filter(Gemeinden =="ADELSHOFEN")
 ```
-
+To determine the number of cars that were build with T16 parts and got registered in ADELSHOFEN, it is necessary to know the id of the cars that have a T16 part.To start with we read the file "Bestandteile Komponente" and determine the components that have T16 parts.
 
 ```{r reading Bestandteile Komponente, warning = FALSE }
 # Reading T16 Teil Komponente
@@ -213,7 +213,7 @@ T16_Kom_2 <- read_delim("Data/Komponente/Bestandteile_Komponente_K2ST2.csv",
 
 names(T16_Kom_2)[2]<-"ID_Sitze"
 ```
-
+Once we have the components, we need to find out the car ids. For that we read the file "Bestandteile Fahrzeuge" and we combine the data (Bestandteil Komponente with Komponente Farhzeug).
 ```{r reading Komponente,warning = FALSE}
 
 Kom_K2LE2<- read.delim("Data/Komponente/Komponente_K2LE2.txt",sep ="\\")%>%dplyr::select(c("ID_Sitze","Werksnummer")) # not need to read it doesnt give any extra info
@@ -228,6 +228,7 @@ Kom_Fahr_1<-read_delim("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ21.csv",del
 Kom_Fahr_2<-read_delim("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM2_Typ22.csv",delim =";",show_col_types = FALSE)%>%dplyr::select(c("ID_Sitze","ID_Fahrzeug"))
 Kom_Fahr_bind<-rbind(Kom_Fahr_1,Kom_Fahr_2)
 ```
+Finally we merge our data "Bestandteile Fahrzeuge" with the"Zulassung" data filter by  ADELSHOFEN  
 ```{r creating dataset,warning = FALSE}
 #join the different datasets to create a dataset that only contains the IDs of the components that where produced in ADELSHOFEN
 Kom_Fahr <- T16_Kom_bind %>%left_join(Kom_Fahr_bind, by ="ID_Sitze")
