@@ -25,11 +25,12 @@ if(!require(install.load)){
 }
 
 
-install_load("tidyverse", "data.table","knitr")
+install_load("tidyverse", "data.table","knitr","forecast","modelr")
 library(tidyverse)
 library(data.table)
 library(knitr)
-
+library(forecast)
+library(modelr)
 if ("fitdistrplus" %in% (.packages())){
 detach(package: fitdistrplus, unload = TRUE)
 }
@@ -893,7 +894,7 @@ str(final_data)
 Columns that represent defective vehicles,components and parts calculated using fact, that if defective part is part of some component this implies that component is also defective. The same principle applies for vehicle, if vehicle contains defective component => vehicle is defective. In the end we have this chain "Defective Part" -> "Defective Component" -> "Defective Vehicle".
 
 Here is summary information for the dataset which provides statistical information for the sales figures of respective brands. Interesting in this table is that the mean number of defective vehicle is slightly less than mean number of vehicles overall produced for a specific day (this is due to chain from previous paragraph)
-```{}
+```{r}
 summary(final_data)
 ```
 
@@ -905,6 +906,7 @@ The main task of this chapter is to get approximate number of vehicle that will 
 So the main linear regression approach is to prepare data based on different basis, such as: daily, weekly, monthly. And the create a model using function lm() from "stats" package passing such formula "Number of Vehicle ~ Zulassung"
 
 To vizualise the data correctly the modified data set contains additional column with names:
+
 * train - data from 2014 - 2016
 * predict - data collected by model for 2017
 * linear_model - data collected by model for 2014-2016
@@ -990,7 +992,7 @@ knitr::include_graphics("Additional files/daily_plot.png")
 
 If we select other choice 
 
-```{r weekly_monthly, fig.show = "hold", out.width = "50%", fig.align = "default"}
+```{r weekly_monthly, fig.show = "hold", out.width = "100%", fig.align = "default",echo=FALSE}
 
 knitr::include_graphics("Additional files/weekly_plot.png")
 
@@ -1006,5 +1008,9 @@ At the first date of 2014 linear model has for the vehicles sold calculated numb
 
 ### 4.c View
 
+In the tab 4.d View we can examine our final_data dataset that includes number of vehicles, components and parts for a specific date. Also quantity of defective ones. Shiny app provides a functionality to filter data, use pagination and change number of rows for the view.
 
+```{r view, echo=FALSE, fig.cap="View of the final data", out.width = '100%'}
+knitr::include_graphics("Additional files/4.d.png")
+```
 
