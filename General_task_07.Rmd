@@ -121,10 +121,16 @@ mean <- as.numeric(mean(logistics_delay$Verzug))
 cat("Mean = ", mean)
 ```
 ### Task 1.c -  Visualization
-```{r visualization,warning = FALSE}
-binwith <-(14-1)/14
-logistics_delay <-ggplot(logistics_delay, aes(x = Verzug ))+
-  geom_histogram(aes(y = stat(density)),colour="black", fill="white", binwidth=1)+
+To determine the bin width for our histogram, we calculate the difference between Max, in our data equals to 14, and Min value, in our data equals to 1, of the delays and divide it by the total number of bins, in this data equals to 14. So the bin width is:
+
+```{r warning = FALSE}
+binwidth <-(14-1)/14
+```
+Since the calculated binwidth is 0,9, it would make much more sense to round it to 1, because the delay days are integer numbers.
+
+```{r warning = FALSE}
+logistics_delay <- ggplot(logistics_delay, aes(x = Verzug ))+
+  geom_histogram(aes(y = stat(density)),colour="black", fill="white", binwidth = 1)+
   scale_x_continuous(breaks = c(0:14))+
   geom_density( fill="#FF6666",adjust = 10,alpha = 0.5) 
 
