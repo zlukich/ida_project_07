@@ -272,8 +272,12 @@ A: "RStudio Shiny Server Open Source" allows customers to get access to the app 
 ## Task 6 Car Rsegistration
 In order to find out where car with the chassis "K5-112-1122-79" got registered, it is important to know the car ID. This is possible by reading the file "Bestandteile Fahrzeuge".
 ```{r registration,warning = FALSE}
-car<-read_delim("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv",delim =";",show_col_types = FALSE)%>%dplyr::select(c("ID_Karosserie","ID_Fahrzeug"))%>%filter(ID_Karosserie == "K5-112-1122-79")
-car_registerd<-filter(zulassung, IDNummer == car$ID_Fahrzeug)
+car <- read_delim("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv",delim =";",
+                  show_col_types = FALSE) %>%
+  dplyr::select(c("ID_Karosserie","ID_Fahrzeug")) %>%
+  filter(ID_Karosserie == "K5-112-1122-79")
+
+car_registerd <- filter(zulassung, IDNummer == car$ID_Fahrzeug)
 gemeinden <- as.character(car_registerd$Gemeinden)
 cat("Car with ID Karosserie'K5-112-1122-79' got registered in ",
     gemeinden) 
