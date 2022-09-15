@@ -260,14 +260,17 @@ kable(table)
 
 
 ## Task 5 Server 
-To save the records on the database of a server has the advantage that no local memory is occupied but more importantly, a permanent access to the most recently data records can be guaranteed in most cases , with a few exception as for example when maintenance takes place. 
+Q: Why does it make sense to store the records on the database of a server? 
+A: To save the records on the database of a server has the advantage that no local memory is occupied but more importantly, a permanent access to the most recently data records can be guaranteed in most cases , with a few exception as for example when maintenance takes place. 
 
-Since databases tend to store a large amount of data, this could cause the computer to slow down. Also the quality of the data deteriorate very fast, since the data doesn't get updated. 
+Q: Why can’t you store the records on your personal computer?
+A: Since databases tend to store a large amount of data, this could cause the computer to slow down. Also the quality of the data deteriorate very fast, since the data doesn't get updated. 
 
-"RStudio Shiny Server Open Source" allows customers to get access to the app from anywhere with any web browser. To share the app, the code can be uploaded to git, for example, as a public repository.
+Q: What is an easy way to make your application available to your customers? 
+A: "RStudio Shiny Server Open Source" allows customers to get access to the app from anywhere with any web browser. To share the app, the code can be uploaded to git, for example, as a public repository.
 
 ## Task 6 Car Rsegistration
-In order to find out where car with the chasis "K5-112-1122-79" got registered, it is important to know the car ID. This is possible by reading the file "Bestandteile Fahrzeuge"
+In order to find out where car with the chassis "K5-112-1122-79" got registered, it is important to know the car ID. This is possible by reading the file "Bestandteile Fahrzeuge".
 ```{r registration,warning = FALSE}
 car<-read_delim("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv",delim =";",show_col_types = FALSE)%>%dplyr::select(c("ID_Karosserie","ID_Fahrzeug"))%>%filter(ID_Karosserie == "K5-112-1122-79")
 car_registerd<-filter(zulassung, IDNummer == car$ID_Fahrzeug)
