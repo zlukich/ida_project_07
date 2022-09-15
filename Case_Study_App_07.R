@@ -147,7 +147,9 @@ ui <- fluidPage(
                                     max=max(final_dataset$Zulassung))),
                    
                    mainPanel(
-                     plotlyOutput(outputId ="plot", width = "auto", height = "750px")),
+                     plotlyOutput(outputId ="plot", width = "auto", height = "750px"),
+                     tableOutput('course')
+                     ),
                    
                    position = "left")
                )
@@ -240,6 +242,15 @@ server <- function(input,output,session){
                           labeller = labeller(Herstellernummer = c("1" = "OEM 1", "2" = "OEM 2"))) +
                ggtitle("Sales Course"))
   })
+  
+  newdata <-reactive(final_dataset%>%
+                        filter(Gemeinden %in% input$Gemeinden )%>%
+                        filter(Zulassung >= input$daterange[1] & Zulassung <=input$daterange[2] )%>%
+                        group_by(Herstellernummer)%>%summarize(TotalVehicle = sum(`Number of Vehicle`)))
+  
+  output$course <- renderTable(newdata())
+  
+
   
   # 4.b Rate of defective vehicle plot
   updateSelectInput(session,
