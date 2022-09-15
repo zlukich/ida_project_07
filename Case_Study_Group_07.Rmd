@@ -888,7 +888,7 @@ write_csv(final_data, "Final_dataset_group_07.csv")
 Generated final data set is used in further analysis of sales figures of 2 brands OEM1 and OEM2. Additional vizualisations are be built on basis of that table, containing columns: `r colnames(final_data)`  
 
 ```{r}
-str(final_data)
+str(final_data,max.lev = 2)
 ```
 
 Columns that represent defective vehicles,components and parts calculated using fact, that if defective part is part of some component this implies that component is also defective. The same principle applies for vehicle, if vehicle contains defective component => vehicle is defective. In the end we have this chain "Defective Part" -> "Defective Component" -> "Defective Vehicle".
