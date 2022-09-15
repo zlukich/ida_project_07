@@ -181,8 +181,6 @@ Provided structure represent relational database structure. It contains referenc
 The Database structure used in this case, is the relational. This means that the data points are related to one another. 
 
 
-
-
 ## Task 3 Components
 To determine the number of cars that were build with T16 parts and got registered in Adelshofen, it is nessecary to know the car id of the cars that have  a T16 part.
 ```{r reading zulassung,warning = FALSE}
