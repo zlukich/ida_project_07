@@ -21,12 +21,13 @@ if(!require(install.load)){
   library(install.load)
 }
 
-install_load("tidyverse", "moments", "plotly", "data.table", "fitdistrplus")
+install_load("tidyverse", "moments", "plotly", "data.table", "fitdistrplus", "knitr")
 library(tidyverse)
 library(moments)
 library(plotly)
 library(data.table)
 library(fitdistrplus)
+library(knitr)
 ```
 
 
@@ -238,20 +239,34 @@ Number of Cars register in ADELSHOFEN:
 ```{r cars in Adelshofen ,warning=FALSE}
 cat("Cars registered at Adelshofen",nrow(Kom_Fahr_Adel))
 ```
+
 ## Task 4 Data Type Attributes 
-The Data type of the table "Zulassung" is shown with the str() function
+The data type of the table "Zulassung" is shown with the str() function
 ```{r zulassung data type,warning = FALSE}
 str(zulassung)
 ```
+The data types are explained in the following table:
+```{r echo = FALSE}
+table <- data.frame("Attribute" = c("...1", "IDNummer", "Gemeinden", "Zulassung"), 
+                    "Data Type" = c("Numeric", "Character", "Character", "Date"), 
+                    "Description" = c("This data type contains numbers that represents unique index of each registeration", 
+                                      "This data type contains strings with vehicle type, its OEM number, its factory, and its unique index",
+                                      "This data type contains strings of registration location",
+                                      "This data type contains date of registration"))
+
+kable(table)
+```
+
+
 ## Task 5 Server 
-To Save the records on the database of a server has the advantage that no local memory is occupied but more important, a permanent access to the most recently data records can be in most cases guaranteed, with a few exception as for example when maintenance takes place. 
+To save the records on the database of a server has the advantage that no local memory is occupied but more importantly, a permanent access to the most recently data records can be guaranteed in most cases , with a few exception as for example when maintenance takes place. 
 
 Since databases tend to store a large amount of data, this could cause the computer to slow down. Also the quality of the data deteriorate very fast, since the data doesn't get updated. 
 
-"RStudio Shiny Server Open Source" allows customers to get access to the app from anywhere with any web browser
+"RStudio Shiny Server Open Source" allows customers to get access to the app from anywhere with any web browser. To share the app, the code can be uploaded to git, for example, as a public repository.
 
 ## Task 6 Car Rsegistration
-In order to find out where car with the carrosserie "K5-112-1122-79" got registered, it is important to know the car ID. This is possible by reading the file " Bestandteile Fahrzeuge"
+In order to find out where car with the chasis "K5-112-1122-79" got registered, it is important to know the car ID. This is possible by reading the file "Bestandteile Fahrzeuge"
 ```{r registration,warning = FALSE}
 car<-read_delim("Data/Fahrzeug/Bestandteile_Fahrzeuge_OEM1_Typ12.csv",delim =";",show_col_types = FALSE)%>%dplyr::select(c("ID_Karosserie","ID_Fahrzeug"))%>%filter(ID_Karosserie == "K5-112-1122-79")
 car_registerd<-filter(zulassung, IDNummer == car$ID_Fahrzeug)
