@@ -898,6 +898,40 @@ Here is summary information for the dataset which provides statistical informati
 summary(final_data)
 ```
 
+### 4.a Sales course 
+The Idea of this task it is to plot the sales course on specify locations of both brands OEM1 and OEM2.The type of graph use of this purpose is a line. 
+From the image, it is possible to see, that the amount of cars sale over time is not constant but fluctuates.
+```{r}
+knitr::include_graphics("Additional files/4.a.png")
+```
+
+```{r}
+knitr::include_graphics("Additional files/4.a3.png")
+```
+
+In case no location is specify, a message would be prompted to the user. 
+
+```{r}
+knitr::include_graphics("Additional files/4.a2.png")
+```
+
+
+### 4.b.Defective 
+In this task, the rate of defective vehicles gets calculated according to the different brands and location. For this task a barplot was used and the data was pivoted.
+The graph shows that OEM1 has produced slightly less defective cars. On the other hand, at component and part level OEM2  has less quality Problems.
+```{r}
+knitr::include_graphics("Additional files/4.b.png")
+```
+Similar to the graph above, the same effect appears here. OEM1 has less defective vehicles but OEM2 has less defective parts and components
+```{r}
+knitr::include_graphics("Additional files/4.b2.png")
+```
+The user can also read the data from the table.
+```{r}
+knitr::include_graphics("Additional files/4.b3.png")
+```
+
+
 
 ### 4.c Creating forecast linear regression for the development of sales figures
 
